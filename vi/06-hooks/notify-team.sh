@@ -4,7 +4,9 @@
 
 # Read the hook input and exit unless the Bash command is a git push
 INPUT=$(cat)
-echo "$INPUT" | grep -q '"command"[[:space:]]*:[[:space:]]*"[^"]*git push' || exit 0
+# Extract the command (escaped quotes like \"msg\" are kept) and match "git push" as a command word anywhere in it
+COMMAND=$(echo "$INPUT" | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' | head -1)
+printf '%s\n' "$COMMAND" | grep -qE '(^|[^[:alnum:]_-]|\\n)git[[:space:]]+push([^[:alnum:]_-]|$)' || exit 0
 
 REPO_NAME=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)
 COMMIT_MSG=$(git log -1 --pretty=%B 2>/dev/null)

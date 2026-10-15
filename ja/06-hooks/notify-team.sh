@@ -6,7 +6,9 @@
 
 # フック入力を読み取り、Bash コマンドが git push でなければ終了する
 INPUT=$(cat)
-echo "$INPUT" | grep -q '"command"[[:space:]]*:[[:space:]]*"[^"]*git push' || exit 0
+# コマンド文字列を取り出し（\"msg\" のようなエスケープされた引用符も含む）、その中のどこかにある "git push" をコマンド語として照合する
+COMMAND=$(echo "$INPUT" | sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"(([^"\\]|\\.)*)".*/\1/p' | head -1)
+printf '%s\n' "$COMMAND" | grep -qE '(^|[^[:alnum:]_-]|\\n)git[[:space:]]+push([^[:alnum:]_-]|$)' || exit 0
 
 REPO_NAME=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)
 COMMIT_MSG=$(git log -1 --pretty=%B 2>/dev/null)
