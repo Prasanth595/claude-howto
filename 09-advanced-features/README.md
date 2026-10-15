@@ -593,10 +593,8 @@ User: Run tests in background
 
 Claude: Started task bg-1234
 
-/task list           # Show all tasks
-/task status bg-1234 # Check progress
-/task show bg-1234   # View output
-/task cancel bg-1234 # Cancel task
+/tasks    # View and manage background work (shells and subagents); stop a task from here
+Ctrl+B    # Move a running Bash command or agent to the background
 ```
 
 ### Starting Background Tasks
@@ -618,44 +616,19 @@ Claude: [Works on auth module while tests run in background]
 Claude: 📢 Background task bg-1234 completed:
 ✅ 245 tests passed
 ❌ 3 tests failed
-View results: /task show bg-1234
+View results: /tasks
 ```
 
 ### Managing Background Tasks
 
-**List active tasks**:
-```
-User: /task list
+Run `/tasks` (alias `/bashes`) to list running shells and subagents, open one to see its output, or stop it. There are no `/task` subcommands.
 
-Active background tasks:
-1. [bg-1234] Running tests (50% complete, 2min remaining)
-2. [bg-1235] Building Docker image (25% complete, 8min remaining)
-3. [bg-1236] Deploying to staging (90% complete, 30sec remaining)
-```
+```text
+User: /tasks
 
-**Check task status**:
-```
-User: /task status bg-1234
-
-Task bg-1234: Running tests
-Status: In progress
-Progress: 120/245 tests (49%)
-Started: 2025-11-08 10:30:15
-Estimated completion: 2025-11-08 10:34:22
-```
-
-**View task output**:
-```
-User: /task show bg-1234
-
-[Shows live output from the test run]
-```
-
-**Cancel task**:
-```
-User: /task cancel bg-1234
-
-Cancelled background task bg-1234
+[Opens the background-work view: running shells and subagents,
+ including subagents that have finished. Select one to see its
+ output, or stop it from here.]
 ```
 
 ### Example: Parallel Development
@@ -1174,6 +1147,8 @@ When you return to a session after being away, Claude can show a brief recap of 
 > **OTEL telemetry — re-enable feedback survey (v2.1.136+)**: Organizations capturing OpenTelemetry data can re-enable Anthropic's session-quality survey by setting `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1`. The survey is off by default in OTEL deployments because it was previously redirected away from telemetry pipelines.
 
 > **OTEL telemetry — `assistant_response` log event (v2.1.193+)**: Claude Code emits a `claude_code.assistant_response` OpenTelemetry log event carrying the model's response text, letting OTEL pipelines capture what Claude said alongside the existing tool/event telemetry.
+
+> **OTEL telemetry — cache and GenAI attributes (v2.1.300)**: `api_request` events add `cache_creation_5m_tokens`/`cache_creation_1h_tokens`, and spans carry GenAI semantic-convention attributes such as `gen_ai.provider.name`.
 
 **Control recap behavior:**
 
@@ -1835,8 +1810,8 @@ claude remote-control --name "Auth Refactor"
 |------|-------------|
 | `--name "title"` | Custom session title for easy identification |
 | `--verbose` | Show detailed connection logs |
-| `--sandbox` | Enable filesystem and network isolation |
-| `--no-sandbox` | Disable sandboxing (default) |
+
+> **Note (v2.1.300)**: `claude remote-control` no longer accepts `--sandbox` or `--no-sandbox` (they never had an effect; passing either now exits with an error). To sandbox Remote Control sessions, set `sandbox.enabled` in a settings file.
 
 ### Connecting to a session
 
@@ -1863,9 +1838,9 @@ Three ways to connect from another device:
 
 ### Limitations
 
-- One remote session per Claude Code instance
+- One remote session per interactive Claude Code process — server mode (`claude remote-control`) serves several at once (`--capacity`, default 32)
 - Terminal must stay open on the host machine
-- Session times out after ~10 minutes if the network is unreachable
+- If the network is unreachable, server mode exits after ~10 minutes; an interactive session keeps retrying and reconnects when the network returns
 
 ### Use cases
 
@@ -2164,16 +2139,19 @@ Sandboxing provides OS-level filesystem and network isolation for Bash commands 
 
 ### Enabling Sandboxing
 
-**Slash command**:
-```
+**Slash command** (saves your choice to `.claude/settings.local.json` for this project):
+```text
 /sandbox
 ```
 
-**CLI flags**:
+**Settings file** (all projects): set `"sandbox": { "enabled": true }` in `~/.claude/settings.json`.
+
+**Per session**, without writing a settings file:
 ```bash
-claude --sandbox       # Enable sandboxing
-claude --no-sandbox    # Disable sandboxing
+claude --settings '{"sandbox": {"enabled": true}}'
 ```
+
+> There is no `claude --sandbox` / `--no-sandbox` flag. Since v2.1.300, passing them to `claude remote-control` exits with an error.
 
 ### Configuration Settings
 
@@ -2484,7 +2462,7 @@ export MAX_MCP_OUTPUT_TOKENS=50000
 export ENABLE_TOOL_SEARCH=true
 
 # Prompt caching
-export ENABLE_PROMPT_CACHING_1H=1      # Use 1-hour prompt cache TTL (default is 5 min)
+export ENABLE_PROMPT_CACHING_1H=1      # Request 1-hour cache TTL for all requests (default: 1h for the main conversation on a subscription, 5 min on API key / cloud providers)
 
 # Task management
 export CLAUDE_CODE_TASK_LIST_ID=my-project-tasks
@@ -2542,13 +2520,19 @@ export CLAUDE_CODE_MCP_STARTUP_WAIT_MS=5000                 # (v2.1.274) How lon
 export CLAUDE_CODE_WEBFETCH_DEADLINE_MS=300000              # (v2.1.268) Overrides WebFetch's new 300-second deadline. 0 disables the deadline.
 export CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS=32        # (v2.1.269) Raises the Workflow tool's per-run concurrent agent limit. Accepts 1-256.
 export CLAUDE_CODE_AUTO_MODE_SERVER=0                       # (v2.1.278; direct Anthropic API since v2.1.281) Opt out of server-side auto-mode classifier review
+
+# Newer variables (v2.1.299-v2.1.300)
+export CLAUDE_CODE_DISABLE_FILE_MENTIONS=1                  # (v2.1.299) Don't expand @ file/directory mentions; Claude gets the paths and reads them with its file tools. Ignored in project/local settings.
+export CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS=200000           # (v2.1.299, needs v2.1.290+) Context size at which idle compaction applies. Default 200000, minimum 100000. "idleCompaction": false turns it off.
+export CLAUDE_CODE_GZIP_REQUEST_BODIES=0                    # (v2.1.300) Turn off gzip of large request bodies to api.anthropic.com (use if a TLS-inspecting proxy mishandles them).
+export CLAUDE_CODE_ARTIFACT_PUBLISH_EDITS=0                 # (v2.1.300) Edit artifact files with file tools, then publish as a separate step, instead of in-publish edits.
 ```
 
 > **v2.1.223 — `CLAUDE_CODE_DISABLE_1M_CONTEXT` widened**: the variable now holds **every**
 > Claude model with a native 1M-token window down to 200K via auto-compaction, rather than
 > only a fixed list of model IDs.
 
-> **v2.1.108**: `ENABLE_PROMPT_CACHING_1H=1` — use a 1-hour prompt cache TTL instead of the default 5-minute TTL. Reduces cache misses in long, stable sessions. (v2.1.129 fixes a regression where the 1-hour TTL was silently downgraded to 5 minutes.)
+> **v2.1.108**: `ENABLE_PROMPT_CACHING_1H=1` — request the 1-hour prompt cache TTL for the main conversation and other requests. Without it, the main conversation gets 1 hour on a Claude subscription within plan usage and 5 minutes on an API key, usage credits, or a cloud provider; `FORCE_PROMPT_CACHING_5M=1` forces 5 minutes. (v2.1.129 fixes a regression where the 1-hour TTL was silently downgraded to 5 minutes.)
 
 > **v2.1.129**: `CLAUDE_CODE_FORCE_SYNC_OUTPUT=1` forces synchronous output for terminals whose capability auto-detection fails (e.g., Emacs `eat`). `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1` enables background upgrades on Homebrew/WinGet installs, which otherwise never auto-update.
 
@@ -2646,7 +2630,9 @@ Or add to your settings JSON:
 
 ```json
 {
-  "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
 }
 ```
 
@@ -2744,8 +2730,8 @@ For more information about Claude Code and related features:
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/output-styles
 - https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md
@@ -2781,4 +2767,11 @@ For more information about Claude Code and related features:
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.288
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.290
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.293
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/changelog#2-1-300
+- https://code.claude.com/docs/en/settings-reference#sandbox-enabled
+- https://code.claude.com/docs/en/prompt-caching
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/monitoring-usage
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

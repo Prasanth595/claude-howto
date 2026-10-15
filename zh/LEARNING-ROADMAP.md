@@ -105,7 +105,7 @@ graph TD
 | **5** | [Skills](03-skills/README.md) | ⭐⭐ Intermediate | 1 小时 | Level 2 | Slash Commands | 自动化专业能力 | 可复用能力、一致性 |
 | **6** | [Hooks](06-hooks/README.md) | ⭐⭐ Intermediate | 1 小时 | Level 2 | 工具、命令 | 工作流自动化（33 个事件、5 种类型） | 校验、质量门禁 |
 | **7** | [MCP](05-mcp/README.md) | ⭐⭐⭐ Intermediate+ | 1 小时 | Level 2 | 配置 | 实时数据访问 | 实时集成、API |
-| **8** | [Subagents](04-subagents/README.md) | ⭐⭐⭐ Intermediate+ | 1.5 小时 | Level 2 | Memory、命令 | 处理复杂任务（包含 Bash 在内的 6 个内置 agent） | 委派、专业分工 |
+| **8** | [Subagents](04-subagents/README.md) | ⭐⭐⭐ Intermediate+ | 1.5 小时 | Level 2 | Memory、命令 | 处理复杂任务（6 个内置 agent，包括 Explore 和 Plan） | 委派、专业分工 |
 | **9** | [Advanced Features](09-advanced-features/README.md) | ⭐⭐⭐⭐⭐ Advanced | 2-3 小时 | Level 3 | 前面所有内容 | 高阶工具 | Planning、自动模式（Auto Mode）、通道（Channels）、语音输入、权限控制 |
 | **10** | [Plugins](07-plugins/README.md) | ⭐⭐⭐⭐ Advanced | 2 小时 | Level 3 | 前面所有内容 | 完整解决方案 | 团队入职、分发 |
 | **11** | [CLI Mastery](10-cli/README.md) | ⭐⭐⭐ Advanced | 1 小时 | Level 3 | 建议：全部 | 掌握命令行用法 | 脚本、CI/CD、自动化 |
@@ -405,7 +405,7 @@ claude --permission-mode auto "implement the feature"
 claude --permission-mode auto "implement user settings page"
 
 # 练习 6：启用 agent teams
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 # 让 Claude 执行："Implement feature X using a team approach"
 
 # 练习 7：定时任务
@@ -716,10 +716,12 @@ done
 
 ---
 
-**最后更新**：2026 年 9 月 2 日
-**Claude Code 版本**：2.1.257
+**最后更新**：2026 年 10 月 15 日
+**Claude Code 版本**：2.1.300
 **来源**：
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/sub-agents
 **维护者**：Claude How-To Contributors
 **许可证**：仅供学习与参考，免费使用和改编
 

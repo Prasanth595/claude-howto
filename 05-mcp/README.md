@@ -314,7 +314,7 @@ MCP servers can request structured input from the user via interactive dialogs (
 
 ## Tool Description and Instruction Cap
 
-As of v2.1.84, Claude Code enforces a **2 KB cap** on tool descriptions and instructions per MCP server. This prevents individual servers from consuming excessive context with overly verbose tool definitions, reducing context bloat and keeping interactions efficient. Since v2.1.280, you can change this 2,048-character cap with the `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` environment variable. As of v2.1.296 the default is **4,096 characters** for descriptions sent up front and for server instructions (v2.1.296), and descriptions Claude loads through tool search are cut at **16,384 characters** (v2.1.295).
+Claude Code truncates each MCP tool description and each server's instructions to keep verbose servers from bloating context. The default limits are **4,096 characters** for server instructions and for descriptions of tools that load up front (v2.1.296; 2,048 from v2.1.84 until then), and **16,384 characters** for descriptions Claude loads through tool search (v2.1.295). Since v2.1.280, `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` overrides them: the number you set replaces **both** limits (`8192` raises the shorter one and lowers the longer one). Since v2.1.299, descriptions and instructions from Anthropic's first-party MCP servers at `api.anthropic.com` reach Claude in full. Put critical details near the start of a description.
 
 ## MCP Prompts as Slash Commands
 
@@ -540,7 +540,7 @@ MCP configurations support environment variable expansion with fallback defaults
 ```
 
 Variables are expanded at runtime:
-- `${VAR}` - Uses environment variable, error if not set
+- `${VAR}` - Uses environment variable; if it is unset (and has no default), the server still loads with the literal `${VAR}`, and `claude mcp list` and `/mcp` warn about the missing variable
 - `${VAR:-default}` - Uses environment variable, falls back to default if not set
 
 ### Example 2: Database MCP Setup
@@ -1308,8 +1308,8 @@ export GITHUB_TOKEN="your_token"
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/mcp
 - https://code.claude.com/docs/en/managed-mcp
@@ -1322,4 +1322,6 @@ export GITHUB_TOKEN="your_token"
 - https://code.claude.com/docs/en/env-vars
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.285
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.296
+- https://code.claude.com/docs/en/mcp#tool-search-for-mcp-server-authors
+- https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcp-json
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

@@ -99,7 +99,7 @@ graph TD
 | **5** | [Skills](03-skills/) | ⭐⭐ Trung cấp | 1 giờ | Level 2 | Lệnh Slash | Chuyên môn tự động | Khả năng tái sử dụng, nhất quán |
 | **6** | [Hooks](06-hooks/) | ⭐⭐ Trung cấp | 1 giờ | Level 2 | Tools, Commands | Tự động hóa workflow (33 sự kiện, 5 types) | Xác thực, cổng chất lượng |
 | **7** | [MCP](05-mcp/) | ⭐⭐⭐ Trung cấp+ | 1 giờ | Level 2 | Cấu hình | Truy cập dữ liệu trực tiếp | Tích hợp thời gian thực, APIs |
-| **8** | [Tác Nhân Con](04-subagents/) | ⭐⭐⭐ Trung cấp+ | 1.5 giờ | Level 2 | Bộ Nhớ, Commands | Xử lý task phức tạp (6 built-in bao gồm Bash) | Ủy quyền, chuyên môn hóa |
+| **8** | [Tác Nhân Con](04-subagents/) | ⭐⭐⭐ Trung cấp+ | 1.5 giờ | Level 2 | Bộ Nhớ, Commands | Xử lý task phức tạp (6 built-in, bao gồm Explore và Plan) | Ủy quyền, chuyên môn hóa |
 | **9** | [Tính Năng Nâng Cao](09-advanced-features/) | ⭐⭐⭐⭐⭐ Nâng cao | 2-3 giờ | Level 3 | Tất cả trước | Công cụ power user | Planning, Auto Mode, Channels, Voice Dictation, permissions |
 | **10** | [Plugins](07-plugins/) | ⭐⭐⭐⭐ Nâng cao | 2 giờ | Level 3 | Tất cả trước | Giải pháp hoàn chỉnh | Onboarding team, phân phối |
 | **11** | [CLI Mastery](10-cli/) | ⭐⭐⭐ Nâng cao | 1 giờ | Level 3 | Khuyến nghị: Tất cả | Làm chủ usage command-line | Scripting, CI/CD, tự động hóa |
@@ -396,7 +396,7 @@ claude --permission-mode auto "triển khai tính năng"
 claude --permission-mode auto "triển khai trang cài đặt người dùng"
 
 # Exercise 6: Bật agent teams
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 # Hỏi Claude: "Triển khai tính năng X sử dụng cách tiếp cận nhóm"
 
 # Exercise 7: Tasks định kỳ
@@ -733,10 +733,12 @@ Khi bạn đã hoàn thành tất cả milestones:
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 2 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.257
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/sub-agents
 **Được Duy Trì Bởi**: Những người đóng góp Claude How-To
 **Giấy Phép**: Mục đích giáo dục, miễn phí sử dụng và điều chỉnh
 

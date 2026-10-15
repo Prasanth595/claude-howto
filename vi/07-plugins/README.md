@@ -241,14 +241,20 @@ Plugins có quyền truy cập đến một thư mục trạng thái liên tục
   "hooks": {
     "PostToolUse": [
       {
-        "command": "node ${CLAUDE_PLUGIN_DATA}/track-usage.js"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/track-usage.js \"${CLAUDE_PLUGIN_DATA}\"/usage.json"
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-Thư mục được tạo tự động khi plugin được cài đặt. Các file được lưu trữ ở đây tồn tại cho đến khi plugin được gỡ cài đặt.
+Thư mục (`~/.claude/plugins/data/<id>/`) được tạo lần đầu tiên khi nó được tham chiếu và được giữ lại qua các lần cập nhật plugin. Nó bị xóa khi bạn gỡ cài đặt plugin khỏi nơi cuối cùng mà plugin được cài đặt (trừ khi bạn truyền `--keep-data`).
 
 ## Plugin Inline qua Settings (`source: 'settings'`) (v2.1.80+)
 
@@ -377,13 +383,10 @@ devops-automation/
 │   ├── incident-commander.md
 │   └── alert-analyzer.md
 ├── mcp/
-│   ├── github-config.json
-│   ├── kubernetes-config.json
-│   └── prometheus-config.json
+│   └── kubernetes-config.json
 ├── hooks/
 │   ├── pre-deploy.js
-│   ├── post-deploy.js
-│   └── on-error.js
+│   └── post-deploy.js
 └── scripts/
     ├── deploy.sh
     ├── rollback.sh
@@ -406,8 +409,7 @@ documentation/
 │   ├── code-commentator.md
 │   └── example-generator.md
 ├── mcp/
-│   ├── github-docs-config.json
-│   └── slack-announce-config.json
+│   └── github-docs-config.json
 └── templates/
     ├── api-endpoint.md
     ├── function-docs.md
@@ -969,8 +971,8 @@ Các tính năng Claude Code sau hoạt động cùng với plugins:
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 30 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.285
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/discover-plugins
 - https://code.claude.com/docs/en/plugins-reference

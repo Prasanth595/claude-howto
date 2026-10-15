@@ -123,13 +123,13 @@ claude -r "session"    # Tiếp tục phiên theo tên/ID
 | **Checkpoints** | Được tích hợp sẵn | `Esc+Esc` hoặc `/rewind` |
 | **Chế Độ Lập Kế Hoạch** | Được tích hợp sẵn | `/plan <tác vụ>` |
 | **Chế Độ Quyền (6)** | Được tích hợp sẵn | `--allowedTools`, `--permission-mode` |
-| **Phiên Làm Việc** | Được tích hợp sẵn | `/session <lệnh>` |
+| **Phiên Làm Việc** | Được tích hợp sẵn | `/resume`, `/rename`, `/branch`, `/fork` |
 | **Tác Vụ Nền** | Được tích hợp sẵn | Chạy trong nền |
-| **Điều Khiển Từ Xa** | Được tích hợp sẵn | WebSocket API |
-| **Phiên Web** | Được tích hợp sẵn | `claude web` |
-| **Git Worktrees** | Được tích hợp sẵn | `/worktree` |
-| **Tự Động Bộ Nhớ** | Được tích hợp sẵn | Tự động lưu vào CLAUDE.md |
-| **Danh Sách Tác Vụ** | Được tích hợp sẵn | `/task list` |
+| **Điều Khiển Từ Xa** | Được tích hợp sẵn | `claude --remote-control` hoặc `/remote-control` |
+| **Phiên Web** | Được tích hợp sẵn | `claude --cloud "task"` |
+| **Git Worktrees** | Được tích hợp sẵn | `claude -w <name>` |
+| **Tự Động Bộ Nhớ** | Được tích hợp sẵn | Tự động lưu vào `~/.claude/projects/<project>/memory/` |
+| **Danh Sách Tác Vụ** | Được tích hợp sẵn | `Ctrl+T` (checklist), `/tasks` (công việc nền) |
 | **Skills Được Gói (5)** | Được tích hợp sẵn | `/simplify`, `/loop`, `/claude-api`, `/voice`, `/browse` |
 
 ---
@@ -249,10 +249,10 @@ claude --permission-mode plan
 ### Đội Tác Nhân
 ```bash
 # Bật đội tác nhân
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # Hoặc trong settings.json
-{ "agentTeams": { "enabled": true } }
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 
 # Bắt đầu với: "Triển khai tính năng X sử dụng cách tiếp cận đội"
 ```
@@ -393,14 +393,14 @@ cp -r 03-skills/code-review-specialist ~/.claude/skills/
 | **MCP Elicitation** | MCP servers có thể yêu cầu input người dùng tại runtime | Tự động nhắc khi server cần làm rõ |
 | **WebSocket MCP** | Vận chuyển WebSocket cho kết nối MCP | Cấu hình trong `.mcp.json` với URL `ws://` |
 | **Plugin LSP** | Hỗ trợ Language Server Protocol cho plugins | `userConfig`, biến `${CLAUDE_PLUGIN_DATA}` |
-| **Điều Khiển Từ Xa** | Điều khiển Claude Code qua WebSocket API | `claude --remote` cho tích hợp bên ngoài |
-| **Phiên Web** | Giao diện Claude Code trên trình duyệt | `claude web` để khởi động |
+| **Điều Khiển Từ Xa** | Điều khiển phiên cục bộ từ claude.ai hoặc ứng dụng Claude | `claude --remote-control` (hoặc `/remote-control` trong phiên) |
+| **Phiên Web** | Phiên cloud tại claude.ai/code | `claude --cloud "task"` để khởi động từ terminal |
 | **Ứng Dụng Desktop** | Ứng dụng desktop native | Tải từ claude.ai/download |
-| **Danh Sách Tác Vụ** | Quản lý tác vụ nền | `/task list`, `/task status <id>` |
-| **Tự Động Bộ Nhớ** | Tự động lưu bộ nhớ từ cuộc hội thoại | Claude tự động lưu bối cảnh chính vào CLAUDE.md |
-| **Git Worktrees** | Không gian làm việc cô lập cho phát triển song song | `/worktree` để tạo không gian làm việc cô lập |
+| **Danh Sách Tác Vụ** | Quản lý tác vụ nền | `/tasks` (bí danh `/bashes`) |
+| **Tự Động Bộ Nhớ** | Tự động lưu bộ nhớ từ cuộc hội thoại | Claude lưu ghi chú vào `~/.claude/projects/<project>/memory/MEMORY.md`; quản lý bằng `/memory` |
+| **Git Worktrees** | Không gian làm việc cô lập cho phát triển song song | `claude --worktree <name>` (hoặc `-w`) |
 | **Chọn Mô Hình** | Chuyển đổi giữa Fable 5.1, Fable 5, Opus 5, Sonnet 5, Sonnet 4.6, Opus 4.8 và Haiku 4.5 | `/model` hoặc cờ `--model` |
-| **Đội Tác Nhân** | Phối hợp nhiều tác nhân trên tác vụ | Bật với biến môi trường `CLAUDE_AGENT_TEAMS=1` |
+| **Đội Tác Nhân** | Phối hợp nhiều tác nhân trên tác vụ | Bật với biến môi trường `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (thử nghiệm) |
 | **Tác Vụ Định Kỳ** | Tác vụ định kỳ với `/loop` | `/loop 5m /command` hoặc công cụ CronCreate |
 | **Tích Hợp Chrome** | Tự động hóa trình duyệt | Cờ `--chrome` hoặc lệnh `/chrome` |
 | **Tùy Chỉnh Bàn Phím** | Phím tắt tùy chỉnh | Lệnh `/keybindings` |
@@ -507,7 +507,12 @@ Checklist bắt đầu:
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 2 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.257
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/memory#storage-location

@@ -228,14 +228,20 @@ my-plugin/
   "hooks": {
     "PostToolUse": [
       {
-        "command": "node ${CLAUDE_PLUGIN_DATA}/track-usage.js"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/track-usage.js \"${CLAUDE_PLUGIN_DATA}\"/usage.json"
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-插件安装时会自动创建该目录。存放在这里的文件会一直保留，直到插件被卸载。
+该目录（`~/.claude/plugins/data/<id>/`）在首次被引用时创建，并在插件更新后保留。当你从插件安装的最后一个位置卸载插件时，该目录会被删除（除非传入 `--keep-data`）。
 
 ## 通过设置文件内联定义插件（`source: 'settings'`）（v2.1.80+）
 
@@ -364,13 +370,10 @@ devops-automation/
 │   ├── incident-commander.md
 │   └── alert-analyzer.md
 ├── mcp/
-│   ├── github-config.json
-│   ├── kubernetes-config.json
-│   └── prometheus-config.json
+│   └── kubernetes-config.json
 ├── hooks/
 │   ├── pre-deploy.js
-│   ├── post-deploy.js
-│   └── on-error.js
+│   └── post-deploy.js
 └── scripts/
     ├── deploy.sh
     ├── rollback.sh
@@ -393,8 +396,7 @@ documentation/
 │   ├── code-commentator.md
 │   └── example-generator.md
 ├── mcp/
-│   ├── github-docs-config.json
-│   └── slack-announce-config.json
+│   └── github-docs-config.json
 └── templates/
     ├── api-endpoint.md
     ├── function-docs.md
@@ -956,8 +958,8 @@ claude plugin update plugin-name
 
 ---
 
-**最后更新**: 2026 年 9 月 30 日
-**Claude Code 版本**: 2.1.285
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/discover-plugins
 - https://code.claude.com/docs/en/plugins-reference

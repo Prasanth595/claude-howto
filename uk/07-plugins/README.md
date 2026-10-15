@@ -246,14 +246,20 @@ my-plugin/
   "hooks": {
     "PostToolUse": [
       {
-        "command": "node ${CLAUDE_PLUGIN_DATA}/track-usage.js"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/track-usage.js \"${CLAUDE_PLUGIN_DATA}\"/usage.json"
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-Каталог створюється автоматично при встановленні плагіна. Файли зберігаються до видалення плагіна.
+Каталог (`~/.claude/plugins/data/<id>/`) створюється під час першого звернення до нього та зберігається між оновленнями плагіна. Він видаляється, коли ви видаляєте плагін з останнього місця, де його встановлено (якщо не передати `--keep-data`).
 
 ## Інлайн-плагін через налаштування (`source: 'settings'`) (v2.1.80+)
 
@@ -382,13 +388,10 @@ devops-automation/
 │   ├── incident-commander.md
 │   └── alert-analyzer.md
 ├── mcp/
-│   ├── github-config.json
-│   ├── kubernetes-config.json
-│   └── prometheus-config.json
+│   └── kubernetes-config.json
 ├── hooks/
 │   ├── pre-deploy.js
-│   ├── post-deploy.js
-│   └── on-error.js
+│   └── post-deploy.js
 └── scripts/
     ├── deploy.sh
     ├── rollback.sh
@@ -411,8 +414,7 @@ documentation/
 │   ├── code-commentator.md
 │   └── example-generator.md
 ├── mcp/
-│   ├── github-docs-config.json
-│   └── slack-announce-config.json
+│   └── github-docs-config.json
 └── templates/
     ├── api-endpoint.md
     ├── function-docs.md
@@ -973,8 +975,8 @@ claude plugin update plugin-name
 - [Довідник системи хуків](../06-hooks/README.md)
 
 ---
-**Останнє оновлення**: 30 вересня 2026
-**Версія Claude Code**: 2.1.285
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/discover-plugins
 - https://code.claude.com/docs/en/plugins-reference

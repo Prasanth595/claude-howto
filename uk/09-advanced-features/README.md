@@ -481,10 +481,8 @@ User: Run tests in background
 
 Claude: Started task bg-1234
 
-/task list           # Показати всі завдання
-/task status bg-1234 # Перевірити прогрес
-/task show bg-1234   # Переглянути вивід
-/task cancel bg-1234 # Скасувати завдання
+/tasks    # Переглянути й керувати фоновою роботою (оболонки та субагенти); звідси можна зупинити завдання
+Ctrl+B    # Перевести запущену Bash-команду або агента у фон
 ```
 
 ### Запуск фонових завдань
@@ -506,44 +504,19 @@ Claude: [Works on auth module while tests run in background]
 Claude: 📢 Background task bg-1234 completed:
 ✅ 245 tests passed
 ❌ 3 tests failed
-View results: /task show bg-1234
+View results: /tasks
 ```
 
 ### Управління фоновими завданнями
 
-**Список активних завдань**:
-```
-User: /task list
+Запустіть `/tasks` (псевдонім `/bashes`), щоб переглянути запущені оболонки й субагенти, відкрити один із них і побачити його вивід або зупинити його. Підкоманд `/task` не існує.
 
-Active background tasks:
-1. [bg-1234] Running tests (50% complete, 2min remaining)
-2. [bg-1235] Building Docker image (25% complete, 8min remaining)
-3. [bg-1236] Deploying to staging (90% complete, 30sec remaining)
-```
+```text
+User: /tasks
 
-**Перевірка статусу завдання**:
-```
-User: /task status bg-1234
-
-Task bg-1234: Running tests
-Status: In progress
-Progress: 120/245 tests (49%)
-Started: 2025-11-08 10:30:15
-Estimated completion: 2025-11-08 10:34:22
-```
-
-**Перегляд виводу завдання**:
-```
-User: /task show bg-1234
-
-[Shows live output from the test run]
-```
-
-**Скасування завдання**:
-```
-User: /task cancel bg-1234
-
-Cancelled background task bg-1234
+[Opens the background-work view: running shells and subagents,
+ including subagents that have finished. Select one to see its
+ output, or stop it from here.]
 ```
 
 ### Приклад: Паралельна розробка
@@ -1292,8 +1265,8 @@ claude remote-control --name "Auth Refactor"
 |------|-------------|
 | `--name "title"` | Власна назва сесії для зручної ідентифікації |
 | `--verbose` | Показувати детальні логи зʼєднання |
-| `--sandbox` | Увімкнути ізоляцію файлової системи та мережі |
-| `--no-sandbox` | Вимкнути пісочницю (за замовчуванням) |
+
+> **Примітка (v2.1.300)**: `claude remote-control` більше не приймає `--sandbox` чи `--no-sandbox` (вони ніколи не мали ефекту; передача будь-якого з них тепер завершується помилкою). Щоб запускати сесії Remote Control у пісочниці, встановіть `sandbox.enabled` у файлі налаштувань.
 
 ### Підключення до сесії
 
@@ -1320,9 +1293,9 @@ claude remote-control --name "Auth Refactor"
 
 ### Обмеження
 
-- Одна віддалена сесія на екземпляр Claude Code
+- Одна віддалена сесія на інтерактивний процес Claude Code — серверний режим (`claude remote-control`) обслуговує кілька одночасно (`--capacity`, за замовчуванням 32)
 - Термінал має залишатись відкритим на хост-машині
-- Сесія закінчується через ~10 хвилин, якщо мережа недоступна
+- Якщо мережа недоступна, серверний режим завершується приблизно через 10 хвилин; інтерактивна сесія продовжує повторні спроби й перепідключається, коли мережа повертається
 
 ### Випадки використання
 
@@ -1553,16 +1526,19 @@ claude -w
 
 ### Увімкнення пісочниці
 
-**Слеш-команда**:
-```
+**Слеш-команда** (зберігає ваш вибір у `.claude/settings.local.json` для цього проєкту):
+```text
 /sandbox
 ```
 
-**Прапорці CLI**:
+**Файл налаштувань** (усі проєкти): встановіть `"sandbox": { "enabled": true }` у `~/.claude/settings.json`.
+
+**Для однієї сесії**, без запису у файл налаштувань:
 ```bash
-claude --sandbox       # Увімкнути пісочницю
-claude --no-sandbox    # Вимкнути пісочницю
+claude --settings '{"sandbox": {"enabled": true}}'
 ```
+
+> Прапорців `claude --sandbox` / `--no-sandbox` не існує. Починаючи з v2.1.300, передача їх у `claude remote-control` завершується помилкою.
 
 ### Налаштування конфігурації
 
@@ -1836,7 +1812,9 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ```json
 {
-  "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
 }
 ```
 
@@ -1933,8 +1911,8 @@ claude --teammate-mode in-process
 - [Офіційна документація Agent Teams](https://code.claude.com/docs/en/agent-teams)
 
 ---
-**Останнє оновлення**: 30 вересня 2026
-**Версія Claude Code**: 2.1.285
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/permissions
 - https://code.claude.com/docs/en/auto-mode-classifier-billing
@@ -1945,4 +1923,10 @@ claude --teammate-mode in-process
 - https://code.claude.com/docs/en/permission-modes#which-mode-a-session-starts-in
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.284
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.285
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/changelog#2-1-300
+- https://code.claude.com/docs/en/sandboxing
+- https://code.claude.com/docs/en/settings-reference#sandbox-enabled
+- https://code.claude.com/docs/en/interactive-mode
+- https://code.claude.com/docs/en/agent-teams
 **Сумісні моделі**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

@@ -25,7 +25,7 @@ Use these specific recommendations when a topic is a gap. Paths are relative to 
 **Skills (score 0)**:
 - Tutorial: [03-skills/](../../../../03-skills/)
 - Focus on: SKILL.md format, auto-invocation via description field, progressive disclosure (3 loading levels)
-- Key exercise: Install the code-review skill and verify it auto-triggers
+- Key exercise: Install `03-skills/code-review-specialist` and verify it auto-triggers
 - Done when: A skill automatically activates based on conversation context
 
 **Skills (score 1 — review)**:
@@ -39,8 +39,8 @@ Use these specific recommendations when a topic is a gap. Paths are relative to 
 - Done when: A hook blocks dangerous commands before execution
 
 **Hooks (score 1 — review)**:
-- Focus on: All 33 hook events (including PostToolUseFailure, StopFailure, TaskCreated, CwdChanged, FileChanged, PostCompact, Elicitation, ElicitationResult, Setup, UserPromptExpansion, MessageDisplay, PreModelSwitch, PostModelSwitch — the last two added in v2.1.251), 5 hook types (command, http, mcp_tool, prompt, agent — agent hooks are experimental and may change), component-scoped hooks in SKILL.md frontmatter, HTTP hooks with allowedEnvVars, `onFailure: "block"` to block the action when a command or HTTP hook fails (v2.1.295+), `CLAUDE_ENV_FILE` for SessionStart/CwdChanged/FileChanged
-- Done when: You can create a prompt-based Stop hook and a component-scoped hook in a skill
+- Focus on: All 33 hook events (including PostToolUseFailure, StopFailure, TaskCreated, CwdChanged, FileChanged, PostCompact, Elicitation, ElicitationResult, Setup, UserPromptExpansion, MessageDisplay, PreModelSwitch, PostModelSwitch — the last two added in v2.1.251), 5 hook types (command, http, mcp_tool, prompt, agent — agent hooks are experimental and may change), hooks in SKILL.md frontmatter (they persist for the session after invocation; subagent-frontmatter hooks end with the subagent), HTTP hooks with allowedEnvVars, `onFailure: "block"` to block the action when a command or HTTP hook fails (v2.1.295+), `CLAUDE_ENV_FILE` for SessionStart, Setup, CwdChanged and FileChanged
+- Done when: You can create a prompt-based Stop hook and a hook in a skill's frontmatter (and you know it stays registered for the rest of the session)
 
 **MCP (score 0)**:
 - Tutorial: [05-mcp/](../../../../05-mcp/)
@@ -49,8 +49,8 @@ Use these specific recommendations when a topic is a gap. Paths are relative to 
 - Done when: You can query live data from an external service via MCP
 
 **MCP (score 1 — review)**:
-- Focus on: Project-scope .mcp.json (requires team approval), OAuth 2.0 auth, MCP resources with `@server:resource` mentions, Tool Search (ENABLE_TOOL_SEARCH), `claude mcp serve`, output limits (10,000 tokens warning; 25,000 tokens default max via `MAX_MCP_OUTPUT_TOKENS`; 50,000 characters disk-persistence threshold)
-- Done when: You have a project .mcp.json and understand Tool Search auto mode
+- Focus on: Project-scope .mcp.json (each user approves it on first use; workspace trust applies), OAuth 2.0 auth, MCP resources with `@server:resource` mentions, Tool Search (ENABLE_TOOL_SEARCH), `claude mcp serve`, output limits (10,000 tokens warning; 25,000 tokens default max via `MAX_MCP_OUTPUT_TOKENS`; 50,000 characters disk-persistence threshold)
+- Done when: You have a project .mcp.json and understand how tool search defers MCP tools by default and what `ENABLE_TOOL_SEARCH=auto`/`false` change
 
 **Subagents (score 0)**:
 - Tutorial: [04-subagents/](../../../../04-subagents/)
@@ -100,8 +100,8 @@ Use these specific recommendations when a topic is a gap. Paths are relative to 
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/memory
@@ -117,3 +117,5 @@ Use these specific recommendations when a topic is a gap. Paths are relative to 
 - https://code.claude.com/docs/en/model-config
 - https://code.claude.com/docs/en/plugins/mods/overview
 - https://code.claude.com/docs/en/plugins/cli-reference
+- https://code.claude.com/docs/en/mcp#configure-tool-search
+- https://code.claude.com/docs/en/mcp#project-server-approvals-and-workspace-trust

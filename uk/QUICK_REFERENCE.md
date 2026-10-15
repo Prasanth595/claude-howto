@@ -136,13 +136,13 @@ claude -r "session"    # Відновити сесію за назвою/ID
 | **Контрольні точки** | Вбудовано | `Esc+Esc` або `/rewind` |
 | **Режим планування** | Вбудовано | `/plan <завдання>` |
 | **Режими дозволів (6)** | Вбудовано | `--allowedTools`, `--permission-mode` |
-| **Сесії** | Вбудовано | `/session <команда>` |
+| **Сесії** | Вбудовано | `/resume`, `/rename`, `/branch`, `/fork` |
 | **Фонові завдання** | Вбудовано | Run in background |
-| **Віддалене керування** | Вбудовано | WebSocket API |
-| **Веб-сесії** | Вбудовано | `claude web` |
-| **Git Worktrees** | Вбудовано | `/worktree` |
-| **Автопам'ять** | Вбудовано | Автозбереження в CLAUDE.md |
-| **Список завдань** | Вбудовано | `/task list` |
+| **Віддалене керування** | Вбудовано | `claude --remote-control` або `/remote-control` |
+| **Веб-сесії** | Вбудовано | `claude --cloud "task"` |
+| **Git Worktrees** | Вбудовано | `claude -w <name>` |
+| **Автопам'ять** | Вбудовано | Автозбереження в `~/.claude/projects/<project>/memory/` |
+| **Список завдань** | Вбудовано | `Ctrl+T` (чеклист), `/tasks` (фонова робота) |
 | **Вбудовані навички (5)** | Вбудовано | `/simplify`, `/loop`, `/claude-api`, `/voice`, `/browse` |
 
 ---
@@ -272,10 +272,10 @@ claude --permission-mode plan
 
 ```bash
 # Увімкнути команди агентів
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # Або в settings.json
-{ "agentTeams": { "enabled": true } }
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 
 # Почніть з: "Implement feature X using a team approach"
 ```
@@ -424,14 +424,14 @@ cp -r 03-skills/code-review-specialist ~/.claude/skills/
 | **Хуки (33 події)** | Розширена система хуків з 5 типами | Типи: command, http, mcp_tool, prompt, agent |
 | **MCP Elicitation** | MCP-сервери можуть запитувати ввід під час виконання | Автозапит при потребі сервера |
 | **Plugin LSP** | Підтримка Language Server Protocol для плагінів | `userConfig`, змінна `${CLAUDE_PLUGIN_DATA}` |
-| **Віддалене керування** | Керування Claude Code через WebSocket API | `claude --remote` для зовнішніх інтеграцій |
-| **Веб-сесії** | Браузерний інтерфейс Claude Code | `claude web` для запуску |
+| **Віддалене керування** | Керування локальною сесією з claude.ai або застосунку Claude | `claude --remote-control` (або `/remote-control` у сесії) |
+| **Веб-сесії** | Хмарні сесії на claude.ai/code | `claude --cloud "task"` для запуску з термінала |
 | **Десктопний застосунок** | Нативний десктопний застосунок | Завантаження з claude.ai/download |
-| **Список завдань** | Управління фоновими завданнями | `/task list`, `/task status <id>` |
-| **Автопам'ять** | Автоматичне збереження з розмов | Claude автозберігає контекст у CLAUDE.md |
-| **Git Worktrees** | Ізольовані робочі простори для паралельної розробки | `/worktree` для створення |
+| **Список завдань** | Управління фоновими завданнями | `/tasks` (псевдонім `/bashes`) |
+| **Автопам'ять** | Автоматичне збереження з розмов | Claude зберігає нотатки в `~/.claude/projects/<project>/memory/MEMORY.md`; керування через `/memory` |
+| **Git Worktrees** | Ізольовані робочі простори для паралельної розробки | `claude --worktree <name>` (або `-w`) |
 | **Вибір моделі** | Перемикання між Fable 5.1, Fable 5, Opus 5, Sonnet 5, Sonnet 4.6, Opus 4.8 та Haiku 4.5 | `/model` або прапорець `--model` |
-| **Команди агентів** | Координація кількох агентів | Увімкнути з `CLAUDE_AGENT_TEAMS=1` |
+| **Команди агентів** | Координація кількох агентів | Увімкнути з `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (експериментально) |
 | **Заплановані завдання** | Повторювані завдання з `/loop` | `/loop 5m /command` або CronCreate |
 | **Інтеграція з Chrome** | Автоматизація браузера | Прапорець `--chrome` або `/chrome` |
 | **Кастомізація клавіатури** | Налаштування клавіш | Команда `/keybindings` |
@@ -541,7 +541,12 @@ echo $GITHUB_TOKEN
 
 ---
 
-**Останнє оновлення**: 2 вересня 2026
-**Версія Claude Code**: 2.1.257
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/memory#storage-location

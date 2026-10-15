@@ -376,7 +376,7 @@ documentation/
 | `config-examples.json` | 設定例 | ユースケース別の 10 種以上の設定 |
 | `planning-mode-examples.md` | プランニング例 | REST API、DB マイグレーション、リファクタリング |
 | スケジュールタスク | `/loop` および cron ツールによる反復タスク | 自動化された反復ワークフロー |
-| Chrome 連携 | ヘッドレス Chromium によるブラウザ自動化 | Web テストとスクレイピング |
+| Chrome 連携 | Claude in Chrome 拡張機能による自分の Chrome でのブラウザ自動化 | Web テストとスクレイピング |
 | リモートコントロール（拡張） | 接続方式、セキュリティ、比較表 | リモートセッション管理 |
 | キーバインドカスタマイズ | カスタムキーバインド、コード対応、コンテキスト | パーソナライズされたショートカット |
 | デスクトップアプリ（拡張） | コネクタ、launch.json、エンタープライズ機能 | デスクトップ統合 |
@@ -434,7 +434,7 @@ documentation/
 - 自動化された反復ワークフロー
 
 ### Chrome 連携
-- ヘッドレス Chromium によるブラウザ自動化
+- Claude in Chrome 拡張機能による自分の Chrome でのブラウザ自動化
 - Web テストおよびスクレイピング能力
 - ページ操作とデータ抽出
 
@@ -466,10 +466,10 @@ documentation/
 **主な CLI 機能**：
 - `claude` — 対話セッションを開始
 - `claude -p "prompt"` — ヘッドレス / 非対話モード
-- `claude web` — Web セッションを起動
+- `claude --cloud "task"` — クラウド（Web）セッションを開始
 - `claude --model` — モデル選択（Sonnet 4.6、Opus 4.7、Haiku 4.5）
 - `claude --permission-mode` — 権限モードの設定
-- `claude --remote` — WebSocket 経由のリモートコントロール有効化
+- `claude --remote-control` — claude.ai や Claude アプリからも操作できるセッションを開始
 
 ---
 
@@ -882,8 +882,8 @@ Run tests in background
 
 ---
 
-**最終更新**：2026 年 9 月 19 日
-**Claude Code バージョン**：2.1.278
+**最終更新**：2026 年 10 月 15 日
+**Claude Code バージョン**：2.1.300
 **互換モデル**：Claude Sonnet 4.6、Claude Opus 4.7、Claude Haiku 4.5
 **例題総数**：100 ファイル超
 **カテゴリ**：10 機能
@@ -896,3 +896,6 @@ Run tests in background
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/commands
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.119
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/chrome

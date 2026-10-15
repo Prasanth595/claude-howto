@@ -18,7 +18,7 @@ Slash commands are shortcuts that control Claude's behavior during an interactiv
 
 ## Built-in Commands Reference
 
-Built-in commands are shortcuts for common actions. There are **60+ built-in commands** and **10 bundled skills** available. Type `/` in Claude Code to see the full list, or type `/` followed by any letters to filter.
+Built-in commands are shortcuts for common actions. There are **60+ built-in commands** and **about 20 bundled skills** (some feature-gated) available. Type `/` in Claude Code to see the full list, or type `/` followed by any letters to filter.
 
 > **Note**: Since v2.1.236, pressing Enter on a mistyped slash command — or on a command that is not available in the current session — reports an error instead of silently running the closest fuzzy match. Unambiguous prefixes and defined aliases still run as before.
 
@@ -30,7 +30,7 @@ Built-in commands are shortcuts for common actions. There are **60+ built-in com
 | `/branch [name]` | Switch into a copy of the conversation at this point, preserving the original (return to it with `/resume`) |
 | `/fork [prompt]` | Copy the current conversation into a new **background session** and keep working here; the two are independent from that point on and the copy gets its own row in `claude agents` (v2.1.212+). Except when the copy edits in place, Claude Code instructs it to create a worktree of its own before making code changes (isolation instruction requires v2.1.221+) |
 | `/subtask <task>` | Spawn a **forked subagent** that inherits the full conversation and works on the task while you keep going; its result returns to this conversation when it finishes (v2.1.212+) |
-| `/btw <question>` | Ask an ephemeral side question while Claude is working on the main task; doesn't pollute the main conversation context |
+| `/btw [question]` | Ask an ephemeral side question while Claude is working on the main task; doesn't pollute the main conversation context. Bare `/btw` reopens your last side question (v2.1.212+) |
 | `/cd <path>` | Move the session to a new working directory without breaking the prompt cache (added v2.1.169) |
 | `/chrome` | Configure Chrome browser integration |
 | `/clear` | Clear conversation (aliases: `/reset`, `/new`) |
@@ -77,13 +77,13 @@ Built-in commands are shortcuts for common actions. There are **60+ built-in com
 | `/release-notes` | View changelog |
 | `/recap` | Show session recap / summary when returning to a session (added v2.1.108) |
 | `/reload-plugins` | Reload active plugins. Since v2.1.221 most installs activate immediately, so this is only needed when the install summary says `Run /reload-plugins to activate.` Available in headless sessions as of v2.1.260, so it also appears in the Claude Code Desktop and SDK command lists |
-| `/reload-skills` | Re-scan skill directories without restarting the session (added v2.1.152) |
+| `/reload-skills` | Re-scan skill directories without restarting the session (added v2.1.152). Re-sends the full skill list to Claude, which restores skills after compaction (v2.1.299) |
 | `/remote-control` | Remote control from claude.ai (alias: `/rc`) |
 | `/remote-env` | Configure default remote environment |
 | `/rename [name]` | Rename session |
 | `/resume [session]` | Resume conversation (alias: `/continue`) |
 | `/review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [pr#\|branch\|path]` | Alias of `/code-review` (v2.1.223): reviews the current diff, or a PR number, branch, or path you pass — e.g. `/review 1234`. Takes the same effort levels and flags. With no level given, it reuses the last `low`–`max` level you typed |
-| `/rewind` | Rewind conversation and/or code (alias: `/checkpoint`) |
+| `/rewind` | Rewind conversation and/or code (aliases: `/checkpoint`, `/undo`) |
 | `/sandbox` | Toggle sandbox mode |
 | `/schedule [description]` | Create/manage Cloud scheduled tasks |
 | `/scroll-speed <+N\|-N>` | Tune mouse-wheel scroll speed of the TUI live-preview pane with a live preview. Persists per-machine to `~/.claude/preferences.json` (added v2.1.139). |
@@ -102,7 +102,7 @@ Built-in commands are shortcuts for common actions. There are **60+ built-in com
 | `/tui` | Toggle fullscreen TUI (text user interface) mode with flicker-free rendering (added v2.1.110) |
 | `/ultrareview` | Comprehensive cloud-based multi-agent code review (added v2.1.111). The preferred invocation is now `/code-review ultra`; `/ultrareview` remains as an alias. Includes 3 free runs on Pro and Max, then requires usage credits |
 | `/upgrade` | Open upgrade page for higher plan tier |
-| `/usage` | Canonical usage dashboard (v2.1.118) — combines plan usage limits, rate limits, cost, and daily session stats. `/cost` and `/stats` are typing-shortcut aliases that open specific tabs |
+| `/usage` | Canonical usage dashboard (v2.1.118) — combines plan usage limits, rate limits, cost, and daily session stats. `/cost` and `/stats` are typing-shortcut aliases that open specific tabs. Warns about max effort, workflows, always-on context and large tool results (v2.1.299) |
 | `/voice` | Toggle push-to-talk voice dictation |
 | `/workflows` | View running and completed dynamic workflow runs (added v2.1.154). See [Dynamic Workflows](../09-advanced-features/README.md#dynamic-workflows) |
 
@@ -120,7 +120,7 @@ These skills ship with Claude Code and are invoked like slash commands:
 | `/debug [description]` | Enable debug logging |
 | `/design [description]` | Create a **design canvas** — a multi-artboard visual design (UI mockups, screen flows, landing pages, posters) published as an artifact and refined visually rather than in code. Use it instead of hand-writing HTML when the layout is what you want to iterate on. Research preview; requires v2.1.233+ and a Pro, Max, Team, or Enterprise plan |
 | `/loop [interval] <prompt>` | Run prompt repeatedly on interval |
-| `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [--max-findings n\|all\|default] [pr#\|branch\|path]` | Review the current diff — or a PR number, branch, or path you pass — for correctness bugs. Pass `--fix` to apply findings, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep cloud review; with `ultra` on a `github.com` PR target, `--post` preselects posting the findings to the PR. With no effort level given, the review reuses the last level you typed (v2.1.223). Originally absorbed `/simplify` in v2.1.146, but `/simplify` returned as a distinct command in v2.1.154. Pass `--max-findings <n>\|all` to report more or fewer findings than the usual limit; the choice is reused until you pass `--max-findings default` (v2.1.288) |
+| `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [--max-findings n\|all\|default] [pr#\|branch\|path]` | Review the current diff — or a PR number, branch, or path you pass — for correctness bugs. Pass `--fix` to apply findings, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep cloud review; with `ultra` on a `github.com` PR target, `--post` preselects posting the findings to the PR. With no effort level given, the review reuses the last level you typed (v2.1.223). Originally absorbed `/simplify` in v2.1.147, but `/simplify` returned as a distinct command in v2.1.154. Pass `--max-findings <n>\|all` to report more or fewer findings than the usual limit; the choice is reused until you pass `--max-findings default` (v2.1.288) |
 | `/simplify` | Run a cleanup-only review (reuse / simplification / efficiency / altitude) and apply the fixes; does **not** hunt for bugs — use `/code-review` for that. Briefly an alias of `/code-review --fix` (v2.1.152), it became cleanup-only in v2.1.154 |
 
 ### Deprecated Commands
@@ -129,7 +129,6 @@ These skills ship with Claude Code and are invoked like slash commands:
 |---------|--------|
 | `/pr-comments` | Removed in v2.1.91 — ask Claude directly to view PR comments |
 | `/vim` | Removed in v2.1.92 — use /config → Editor mode |
-| `/undo` | No longer listed in the official commands reference as of v2.1.245 (it was added as an alias for `/rewind` in v2.1.108) — use `/rewind` or press `Esc` twice |
 
 ### Recent Changes
 
@@ -154,7 +153,7 @@ These skills ship with Claude Code and are invoked like slash commands:
 - `/tui` command added for flicker-free fullscreen TUI rendering (v2.1.110)
 - `/focus` command added for focus view toggle; `Ctrl+O` now only toggles verbose transcript (v2.1.110)
 - `/recap` command added to manually trigger session context recap (v2.1.108)
-- `/undo` added as alias for `/rewind` (v2.1.108); it no longer appears in the official commands reference as of v2.1.245 — use `/rewind` or `Esc Esc`
+- `/undo` added as alias for `/rewind` (v2.1.108); it remains an alias of `/rewind`, alongside `/checkpoint`
 - `/proactive` added as alias for `/loop` (v2.1.105)
 - `/effort` gained interactive arrow-key slider and new `xhigh` level between `high` and `max`; default effort raised to `xhigh` for Opus 4.7 plans (v2.1.111). On Opus 4.8 the default is `high` (v2.1.154); Opus 5 also defaults to `high` (v2.1.219)
 - `/ultrareview` added for comprehensive cloud-based multi-agent code review (v2.1.111)
@@ -290,7 +289,7 @@ Instructions for Claude to follow when this command is invoked.
 | `user-invocable` | If `false`, hide from `/` menu | `true` |
 | `context` | Set to `fork` to run in isolated subagent | None |
 | `agent` | Agent type when using `context: fork` | `general-purpose` |
-| `hooks` | Skill-scoped hooks (PreToolUse, PostToolUse, Stop) | None |
+| `hooks` | Hooks registered when the skill runs (any hook event; they stay active for the rest of the session) | None |
 
 ### Arguments
 
@@ -327,6 +326,8 @@ Usage: `/review-pr 456 high` → `$0`="456", `$1`="high"
 ### Dynamic Context with Shell Commands
 
 Execute bash commands before the prompt using `` !`command` ``:
+
+> **Note (v2.1.299)**: `UserPromptSubmit` hooks run before the command expands, so a hook that blocks the prompt also stops these `!` commands from running.
 
 ```yaml
 ---
@@ -394,6 +395,8 @@ Control MCP server access in permissions:
 - `mcp__github` - Access entire GitHub MCP server
 - `mcp__github__*` - Wildcard access to all tools
 - `mcp__github__get_issue` - Specific tool access
+
+> **v2.1.299+:** A rule reaches only the server it names — `mcp__github` no longer matches a server named `github__x` or `github_`. For a server whose normalized name contains `__`, write `mcp__<whole normalized name>__*` (the same applies to subagent `tools:` lists).
 
 ## Command Architecture
 
@@ -651,8 +654,8 @@ If both exist with the same name, the **skill takes precedence**. Remove one or 
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/output-styles
 - https://code.claude.com/docs/en/skills
@@ -674,6 +677,10 @@ If both exist with the same name, the **skill takes precedence**. Remove one or 
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.283
 - https://code.claude.com/docs/en/workflows#let-claude-decide-with-ultracode
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.285
+- https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents
+- https://code.claude.com/docs/en/permissions#mcp
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5
 
 *Part of the [Claude How To](../) guide series*

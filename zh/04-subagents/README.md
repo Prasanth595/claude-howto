@@ -43,7 +43,7 @@ tools: Read, Grep, Bash
 |------|------|
 | `name` | subagent 名称 |
 | `description` | 何时该调用它 |
-| `tools` | 允许使用的工具 |
+| `tools` | 允许使用的工具。MCP：`mcp__<server>__*` 授予整个服务器的工具（v2.1.299+：只匹配完全相同的服务器名） |
 | `model` | 指定模型 |
 | `prompt` | 任务提示词 |
 | `context` | 上下文策略 |
@@ -115,9 +115,7 @@ mkdir -p ~/.claude/agents
 
 ### 列出可用 agents
 
-```bash
-claude agents
-```
+要查看已配置的 subagents，可以询问 Claude，或浏览 `.claude/agents/` 和 `~/.claude/agents/`。（`claude agents` 与此无关：它打开用于后台会话的 agent view。）
 
 ## 可恢复的 agents
 
@@ -180,7 +178,7 @@ Subagent 会在自己的上下文中读取对应记忆，不和主会话完全�
 
 ## `claude agents` CLI 命令
 
-用于查看和管理当前可用的 agent。
+`claude agents` 打开 **agent view**（v2.1.139+）：按状态分组的后台会话全屏列表。它不会列出已配置的 subagent 定义；可用 `claude agents --json` 以脚本方式读取会话状态。
 
 ## Agent Teams（实验性）
 
@@ -391,8 +389,13 @@ cp 04-subagents/*.md ~/.claude/agents/
 
 ---
 
-**最后更新**: 2026 年 9 月 26 日
-**Claude Code 版本**: 2.1.283
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/sub-agents
 - https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/agent-view
+- https://code.claude.com/docs/en/sub-agents#permission-modes
+- https://code.claude.com/docs/en/sub-agents#available-tools

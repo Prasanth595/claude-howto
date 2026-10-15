@@ -92,7 +92,7 @@ sequenceDiagram
 | **Project** | `.claude/skills/<skill-name>/SKILL.md` | Đội | Có (qua git) | Tiêu chuẩn đội |
 | **Plugin** | `<plugin>/skills/<skill-name>/SKILL.md` | Nơi được bật | Phụ thuộc | Được gói với plugins |
 
-Khi skills chia sẻ cùng tên qua các cấp, vị trí ưu tiên cao hơn thắng: **enterprise > personal > project**. Skills cá nhân ghi đè skills cấp project theo mặc định; setting `skillOverrides` (v2.1.129+) điều chỉnh hành vi đó. Plugin skills sử dụng namespace `plugin-name:skill-name`, vì vậy chúng không thể xung đột.
+Khi skills chia sẻ cùng tên qua các cấp, vị trí ưu tiên cao hơn thắng: **enterprise > personal > project**. Khi cùng tên tồn tại trong `~/.claude/skills/` và `.claude/skills/`, skill cá nhân sẽ chạy. Setting `skillOverrides` (v2.1.129+) chỉ điều chỉnh khả năng hiển thị của từng skill (`on`, `name-only`, `user-invocable-only`, `off`), không thay đổi thứ tự ưu tiên, và không ảnh hưởng đến plugin skills. Plugin skills sử dụng namespace `plugin-name:skill-name`, vì vậy chúng không thể xung đột.
 
 ### Khám Phá Tự Động
 
@@ -136,7 +136,7 @@ Hiển thị các ví dụ cụ thể về việc sử dụng Skill này.
 ### Các Trường Khuyến Nghị
 
 - **description** (khuyến nghị): những gì Skill làm VÀ khi nào sử dụng nó. Nếu bỏ trống, Claude Code dùng đoạn văn đầu tiên của nội dung markdown. Nội dung `description` + `when_to_use` gộp lại bị cắt ở **1.536 ký tự** trong danh sách skill (có thể điều chỉnh qua `skillListingMaxDescChars`). Đây là nội dung Claude đối chiếu để quyết định khi nào kích hoạt skill.
-- **name** (tùy chọn): mặc định lấy theo **tên thư mục** của skill. Khi được khai báo, nó đặt tên hiển thị — chỉ chữ thường, số, gạch ngang (tối đa 64 ký tự). Trong Claude Code, `anthropic-skills` và `synced` là tên dành riêng và không được tải bên ngoài plugin; quy tắc chặt hơn cấm "anthropic" hoặc "claude" áp dụng cho các skill được tải lên claude.ai hoặc Skills API. Với skill trong plugin, `name` cũng đặt phân đoạn cuối của lệnh.
+- **name** (tùy chọn): mặc định lấy theo **tên thư mục** của skill. Khi được khai báo, nó đặt tên hiển thị — chỉ chữ thường, số, gạch ngang (tối đa 64 ký tự) là dạng được khuyến nghị và có tính di động (bắt buộc với claude.ai và Skills API). Bản thân Claude Code (v2.1.299+) bỏ qua một skill hoặc lệnh có tên chứa ký tự ẩn, ký tự đổi hướng văn bản hoặc ký tự giống khoảng trắng, `<` hoặc `>`, hoặc dài quá 256 ký tự, cho đến khi bạn đổi tên nó. Trong Claude Code, `anthropic-skills` và `synced` là tên dành riêng và không được tải bên ngoài plugin; quy tắc chặt hơn cấm "anthropic" hoặc "claude" áp dụng cho các skill được tải lên claude.ai hoặc Skills API. Với skill trong plugin, `name` cũng đặt phân đoạn cuối của lệnh.
 
 Mọi trường frontmatter trong SKILL.md đều là tùy chọn; `description` là trường duy nhất được khuyến nghị.
 
@@ -149,13 +149,13 @@ description: What this skill does and when to use it
 argument-hint: "[filename] [format]"        # Gợi ý cho autocomplete
 disable-model-invocation: true              # Chỉ người dùng có thể gọi
 user-invocable: false                       # Ẩn từ menu slash
-allowed-tools: Read, Grep, Glob             # Hạn chế truy cập công cụ
+allowed-tools: Read, Grep, Glob             # Phê duyệt trước các công cụ này (không hỏi quyền) khi skill chạy
 model: opus                                 # Mô hình cụ thể để sử dụng
 effort: high                                # Ghi đè mức nỗ lực (low, medium, high, max)
 context: fork                               # Chạy trong tác nhân con cô lập
 agent: Explore                              # Loại tác nhân nào (với context: fork)
 shell: bash                                 # Shell cho các lệnh: bash (mặc định) hoặc powershell
-hooks:                                      # Hooks theo phạm vi skill
+hooks:                                      # Hooks được đăng ký khi skill được gọi
   PreToolUse:
     - matcher: "Bash"
       hooks:
@@ -166,7 +166,7 @@ hooks:                                      # Hooks theo phạm vi skill
 
 | Trường | Mô Tả |
 |-------|-------------|
-| `name` | Chỉ chữ thường, số, gạch ngang (tối đa 64 ký tự). `anthropic-skills` và `synced` là tên dành riêng trong Claude Code. |
+| `name` | Khuyến nghị (di động): chỉ chữ thường, số, gạch ngang (tối đa 64 ký tự). `anthropic-skills` và `synced` là tên dành riêng trong Claude Code. |
 | `description` | Những gì Skill làm VÀ khi nào sử dụng nó. Nội dung `description` + `when_to_use` gộp lại bị cắt ở 1.536 ký tự trong danh sách skill (có thể điều chỉnh qua `skillListingMaxDescChars`). Quan trọng cho phù hợp kích hoạt tự động. |
 | `when_to_use` | Bối cảnh bổ sung về thời điểm Claude nên gọi skill. Được nối vào `description` trong danh sách skill và tính vào giới hạn 1.536 ký tự. |
 | `argument-hint` | Gợi ý hiển thị trong menu autocomplete `/` (ví dụ: `"[filename] [format]"`). |
@@ -178,7 +178,7 @@ hooks:                                      # Hooks theo phạm vi skill
 | `context` | `fork` để chạy skill trong bối cảnh tác nhân con được fork với cửa sổ bối cảnh riêng. |
 | `agent` | Loại tác nhân con khi `context: fork` (ví dụ: `Explore`, `Plan`, `general-purpose`). |
 | `shell` | Shell được sử dụng cho các thay thế `` !`command` `` và scripts: `bash` (mặc định) hoặc `powershell`. |
-| `hooks` | Hooks theo phạm vi vòng đời skill này (cùng định dạng với hooks toàn cục). |
+| `hooks` | Hooks được đăng ký khi skill được gọi (cùng định dạng với hooks trong settings; mọi sự kiện). Chúng vẫn hoạt động trong suốt phần còn lại của phiên. |
 
 ## Các Loại Nội Dung Skill
 
@@ -264,6 +264,8 @@ Chạy `/fix-issue 123` thay thế `$ARGUMENTS` bằng `123`.
 ## Tiêm Bối Cảnh Động
 
 Cú pháp `` !`command` `` chạy các lệnh shell trước khi nội dung skill được gửi đến Claude:
+
+> **Lưu ý (v2.1.299)**: Hooks `UserPromptSubmit` chạy trước khi lệnh được mở rộng, nên một hook chặn prompt cũng sẽ ngăn các lệnh `!` này chạy.
 
 ```yaml
 ---
@@ -493,11 +495,11 @@ description: Create or update CLAUDE.md files following best practices for optim
 
 ## Core Principles
 
-**LLMs are stateless**: CLAUDE.md is the only file automatically included in every conversation.
+**LLMs are stateless**: CLAUDE.md is the main project file loaded into every conversation (alongside auto memory and unscoped rules).
 
 ### The Golden Rules
 
-1. **Less is More**: Keep under 300 lines (ideally under 100)
+1. **Less is More**: Keep each CLAUDE.md under 200 lines
 2. **Universal Applicability**: Only include information relevant to EVERY session
 3. **Don't Use Claude as a Linter**: Use deterministic tools instead
 4. **Never Auto-Generate**: Craft it manually with careful consideration
@@ -808,8 +810,15 @@ Khi bạn bắt đầu xây dựng skills một cách nghiêm túc, hai điều 
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 26 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.283
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/skills
+- https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents
+- https://code.claude.com/docs/en/skills#characters-a-skill-name-cant-hold
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/skills#pre-approve-tools-for-a-skill
+- https://code.claude.com/docs/en/memory#write-effective-instructions
+- https://code.claude.com/docs/en/memory
 **Các Mô Hình Tương Thích**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

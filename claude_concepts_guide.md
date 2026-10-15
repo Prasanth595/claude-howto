@@ -170,8 +170,8 @@ sequenceDiagram
 |---------------|------|---------|---------|
 | `name` | String | Agent identifier | `code-reviewer` |
 | `description` | String | Purpose & trigger terms | `Comprehensive code quality analysis` |
-| `tools` | List/String | Allowed capabilities | `read, grep, diff, lint_runner` |
-| `system_prompt` | Markdown | Behavioral instructions | Custom guidelines |
+| `tools` | List/String | Allowed tools | `Read, Grep, Glob, Bash` |
+| *(markdown body)* | Markdown | System prompt / behavioral instructions | Custom guidelines |
 
 ### Tool Access Hierarchy
 
@@ -1140,7 +1140,7 @@ Claude Code supports **33 hook events** across five hook types (command, http, m
 | **Setup** | Initial environment setup (one-time per session) | Provision tooling, install deps |
 | **InstructionsLoaded** | CLAUDE.md or rules file loaded | Validation, transformation, augmentation |
 | **UserPromptSubmit** | User submits prompt | Input validation, prompt filtering |
-| **UserPromptExpansion** | User prompt expanded (@-mentions, slash commands resolved) | Transform or inspect expanded prompt |
+| **UserPromptExpansion** | Typed slash command (skill, custom command, MCP prompt) expands into a prompt; can block it | Block or log direct `/command` use, add per-skill context |
 | **PreToolUse** | Before any tool runs | Validation, approval gates, logging |
 | **PermissionRequest** | Permission dialog shown | Auto-approve/deny flows |
 | **PermissionDenied** | User denies a permission prompt | Logging, analytics, policy enforcement |
@@ -1183,7 +1183,7 @@ Hooks are configured in `~/.claude/settings.json` (user-level) or `.claude/setti
         "hooks": [
           {
             "type": "command",
-            "command": "prettier --write $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write"
           }
         ]
       }
@@ -1194,7 +1194,7 @@ Hooks are configured in `~/.claude/settings.json` (user-level) or `.claude/setti
         "hooks": [
           {
             "type": "command",
-            "command": "eslint $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs npx eslint"
           }
         ]
       }
@@ -1205,9 +1205,8 @@ Hooks are configured in `~/.claude/settings.json` (user-level) or `.claude/setti
 
 ### Hook Environment Variables
 
-- `$CLAUDE_FILE_PATH` - Path to file being edited/written
-- `$CLAUDE_TOOL_NAME` - Name of tool being used
-- `$CLAUDE_SESSION_ID` - Current session identifier
+- Hook input arrives as JSON on stdin (`session_id`, `tool_name`, `tool_input.file_path`, …) — read it with `jq`
+- `$CLAUDE_CODE_SESSION_ID` - Current session identifier
 - `$CLAUDE_PROJECT_DIR` - Project directory path
 
 ### Best Practices
@@ -1328,10 +1327,7 @@ User: Run tests in background
 
 Claude: Started task bg-1234
 
-/task list           # Show all tasks
-/task status bg-1234 # Check progress
-/task show bg-1234   # View output
-/task cancel bg-1234 # Cancel task
+/tasks               # View and manage background work (alias: /bashes)
 ```
 
 ### Permission Modes
@@ -1340,11 +1336,11 @@ Control what Claude can do.
 
 | Mode | Description | Use Case |
 |------|-------------|----------|
-| **manual** | Standard permissions with prompts for sensitive actions (renamed from `default` in v2.1.200; `default` still works as an alias) | General development |
+| **manual** | Standard permissions with prompts for sensitive actions (shown as Manual since v2.1.200; config value is still `default`, which hooks and the SDK report) | General development |
 | **acceptEdits** | Automatically accept file edits without confirmation | Trusted editing workflows |
 | **plan** | Analysis and planning only, no file modifications | Code review, architecture planning |
 | **auto** | Automatically approve safe actions, prompt only for risky ones | Balanced autonomy with safety |
-| **dontAsk** | Execute all actions without confirmation prompts | Experienced users, automation |
+| **dontAsk** | Auto-deny anything that would prompt; only pre-approved tools and reads run | Locked-down CI and scripts |
 | **bypassPermissions** | Full unrestricted access, no safety checks | CI/CD pipelines, trusted scripts |
 
 **Usage:**
@@ -1352,7 +1348,7 @@ Control what Claude can do.
 claude --permission-mode plan          # Read-only analysis
 claude --permission-mode acceptEdits   # Auto-accept edits
 claude --permission-mode auto          # Auto-approve safe actions
-claude --permission-mode dontAsk       # No confirmation prompts
+claude --permission-mode dontAsk       # Pre-approved tools only; deny the rest
 ```
 
 ### Headless Mode (Print Mode)
@@ -1477,8 +1473,8 @@ Claude Code supports the following models with adaptive reasoning effort:
 - [Anthropic Cookbook](https://github.com/anthropics/anthropic-cookbook)
 
 ---
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://www.anthropic.com/news/claude-sonnet-5
@@ -1488,4 +1484,7 @@ Claude Code supports the following models with adaptive reasoning effort:
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/sub-agents
 - https://code.claude.com/docs/en/permission-modes
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/hooks#userpromptexpansion
 **Compatible Models**: Claude Fable 5.1, Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

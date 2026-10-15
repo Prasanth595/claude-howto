@@ -582,15 +582,15 @@ All worktrees and subdirectories within the same git repository share a single a
 
 ### Subagent Memory
 
-Subagents (spawned via tools like Task or parallel execution) can have their own memory context. Use the `memory` frontmatter field in the subagent definition to specify which memory scopes to load:
+Subagents (spawned via the Agent tool) can keep their own persistent memory. The `memory` frontmatter field in the subagent definition picks where that memory directory lives:
 
 ```yaml
-memory: user      # Load user-level memory only
-memory: project   # Load project-level memory only
-memory: local     # Load local memory only
+memory: user      # ~/.claude/agent-memory/<agent-name>/
+memory: project   # .claude/agent-memory/<agent-name>/ (shareable via git)
+memory: local     # .claude/agent-memory-local/<agent-name>/ (not checked in)
 ```
 
-This allows subagents to operate with focused context rather than inheriting the full memory hierarchy.
+The subagent reads the first 200 lines / 25KB of that directory's `MEMORY.md` at startup and gets Read/Write/Edit to maintain it. It has no effect when auto memory is disabled.
 
 > **Note**: Subagents can also maintain their own auto memory. See the [official subagent memory documentation](https://code.claude.com/docs/en/sub-agents#enable-persistent-memory) for details.
 
@@ -1244,8 +1244,8 @@ Auto Memory is a separate mechanism (`~/.claude/projects/<project>/memory/`), no
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/memory
 - https://code.claude.com/docs/en/memory#agents-md
@@ -1253,4 +1253,5 @@ Auto Memory is a separate mechanism (`~/.claude/projects/<project>/memory/`), no
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.284
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.288
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.293
+- https://code.claude.com/docs/en/sub-agents#enable-persistent-memory
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

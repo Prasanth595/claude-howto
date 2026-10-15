@@ -486,15 +486,15 @@ npm install -g @anthropic-ai/claude-code@latest
 
 ### Пам'ять субагентів
 
-Субагенти (створені через інструменти на кшталт Task або паралельного виконання) можуть мати власний контекст пам'яті. Використовуйте поле `memory` у фронтматері визначення субагента, щоб вказати, які рівні пам'яті завантажувати:
+Субагенти (створені через інструмент Agent) можуть мати власну постійну пам'ять. Поле `memory` у фронтматері визначення субагента задає, де розташований каталог цієї пам'яті:
 
 ```yaml
-memory: user      # Завантажити лише пам'ять рівня користувача
-memory: project   # Завантажити лише пам'ять рівня проєкту
-memory: local     # Завантажити лише локальну пам'ять
+memory: user      # ~/.claude/agent-memory/<agent-name>/
+memory: project   # .claude/agent-memory/<agent-name>/ (можна ділитися через git)
+memory: local     # .claude/agent-memory-local/<agent-name>/ (не комітиться)
 ```
 
-Це дозволяє субагентам працювати з фокусованим контекстом, а не успадковувати повну ієрархію пам'яті.
+Під час запуску субагент читає перші 200 рядків / 25KB файлу `MEMORY.md` у цьому каталозі й отримує Read/Write/Edit, щоб його підтримувати. Поле не діє, якщо автоматичну пам'ять вимкнено.
 
 > **Примітка**: Субагенти також можуть підтримувати власну auto memory. Див. [офіційну документацію пам'яті субагентів](https://code.claude.com/docs/en/sub-agents#enable-persistent-memory) для деталей.
 
@@ -1159,11 +1159,12 @@ Claude запропонує обрати, який файл пам'яті оно
 - [Офіційна документація пам'яті](https://code.claude.com/docs/en/memory) — документація Anthropic
 
 ---
-**Останнє оновлення**: 10 жовтня 2026
-**Версія Claude Code**: 2.1.296
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/memory
 - https://code.claude.com/docs/en/memory#agents-md
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.288
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.293
+- https://code.claude.com/docs/en/sub-agents#enable-persistent-memory
 **Сумісні моделі**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

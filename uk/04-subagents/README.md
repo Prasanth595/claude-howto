@@ -123,14 +123,14 @@ to solving problems.
 |------|-------------|------|
 | `name` | Так | Унікальний ідентифікатор (малі літери та дефіси) |
 | `description` | Так | Опис призначення природною мовою. Включіть "use PROACTIVELY" для заохочення автоматичного виклику |
-| `tools` | Ні | Список інструментів через кому. Пропустіть для успадкування всіх. Підтримує синтаксис `Agent(agent_name)` для обмеження створюваних субагентів |
+| `tools` | Ні | Список інструментів через кому. Пропустіть для успадкування всіх. Підтримує синтаксис `Agent(agent_name)` для обмеження створюваних субагентів. MCP: `mcp__<server>__*` надає доступ до всього сервера (v2.1.299+: збігається лише з точною назвою цього сервера). |
 | `disallowedTools` | Ні | Список заборонених інструментів через кому |
 | `model` | Ні | Модель: `sonnet`, `opus`, `haiku`, повний ID моделі або `inherit`. За замовч. — налаштована модель субагента |
-| `permissionMode` | Ні | `manual` (перейменовано з `default` у v2.1.200 — стара назва `default` досі приймається), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto` |
+| `permissionMode` | Ні | `default` (режим Manual; `manual` приймається як псевдонім з v2.1.200), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto`. Коли батьківська сесія працює в `bypassPermissions`, `acceptEdits` або `auto`, `permissionMode` субагента ігнорується |
 | `maxTurns` | Ні | Максимальна кількість агентних кроків |
 | `skills` | Ні | Список навичок через кому для попереднього завантаження. Вставляє повний вміст навички в контекст при запуску |
 | `mcpServers` | Ні | MCP-сервери, доступні субагенту |
-| `hooks` | Ні | Хуки, обмежені компонентом (PreToolUse, PostToolUse, Stop) |
+| `hooks` | Ні | Хуки, що працюють лише поки цей субагент активний. Підтримуються всі події хуків; найпоширеніші — `PreToolUse`, `PostToolUse`, `Stop` (виконується як `SubagentStop`) |
 | `memory` | Ні | Область постійної пам'яті: `user`, `project` або `local` |
 | `background` | Ні | `true` для запуску як фонового завдання |
 | `effort` | Ні | Рівень зусиль: `low`, `medium`, `high` або `max` |
@@ -373,11 +373,7 @@ claude --agent code-reviewer
 
 ### Список доступних агентів
 
-Використовуйте команду `claude agents` для переліку всіх налаштованих агентів з усіх джерел:
-
-```bash
-claude agents
-```
+Щоб побачити налаштованих субагентів, запитайте Claude або перегляньте `.claude/agents/` і `~/.claude/agents/`. (`claude agents` тут ні до чого: ця команда відкриває agent view для фонових сесій.)
 
 ---
 
@@ -556,16 +552,14 @@ You are a coordinator agent. You can delegate work to the "worker" and
 
 ## CLI-команда `claude agents`
 
-Команда `claude agents` відображає всіх налаштованих агентів, згрупованих за джерелом (вбудовані, рівень користувача, рівень проєкту):
+`claude agents` відкриває **agent view** (v2.1.139+): повноекранний список ваших фонових сесій, згрупованих за станом. Команда не показує визначення налаштованих субагентів; використовуйте `claude agents --json` для скриптів, що працюють зі станом сесій.
 
 ```bash
 claude agents
+claude agents --json
 ```
 
-Ця команда:
-- Показує всіх доступних агентів з усіх джерел
-- Групує агентів за розташуванням джерела
-- Вказує **перевизначення**, коли агент вищого пріоритету затіняє агента нижчого рівня (наприклад, агент рівня проєкту з тим самим ім'ям, що й агент рівня користувача)
+Налаштовані субагенти зберігаються в `.claude/agents/` (проєкт) і `~/.claude/agents/` (користувач).
 
 ---
 
@@ -1135,10 +1129,15 @@ graph TD
 - [Посібник хуків](../06-hooks/) — для автоматизації за подіями
 
 ---
-**Останнє оновлення**: 26 вересня 2026
-**Версія Claude Code**: 2.1.283
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/sub-agents
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/interactive-mode
+- https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/agent-view
+- https://code.claude.com/docs/en/sub-agents#permission-modes
+- https://code.claude.com/docs/en/sub-agents#available-tools
 **Сумісні моделі**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

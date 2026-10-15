@@ -238,7 +238,7 @@ Các MCP server có thể yêu cầu đầu vào có cấu trúc từ người d
 
 ## Giới Hạn Mô Tả Và Hướng Dẫn Công Cụ / Tool Description and Instruction Cap
 
-Kể từ v2.1.84, Claude Code thực thi **giới hạn 2 KB** trên mô tả và hướng dẫn công cụ cho mỗi MCP server. Điều này ngăn các server riêng lẻ tiêu thụ quá nhiều ngữ cảnh với các định nghĩa công cụ quá dài dòng, giảm bloat ngữ cảnh và giữ các tương tác hiệu quả. Kể từ v2.1.296, mặc định là **4.096 ký tự** cho các mô tả được gửi ngay từ đầu và cho hướng dẫn của server (v2.1.296), còn các mô tả mà Claude tải qua tool search bị cắt ở **16.384 ký tự** (v2.1.295).
+Claude Code cắt bớt mỗi mô tả công cụ MCP và hướng dẫn của mỗi server để các server dài dòng không làm phình ngữ cảnh. Giới hạn mặc định là **4.096 ký tự** cho hướng dẫn của server và cho mô tả của các công cụ được tải ngay từ đầu (v2.1.296; 2.048 từ v2.1.84 đến trước đó), và **16.384 ký tự** cho các mô tả mà Claude tải qua tool search (v2.1.295). Kể từ v2.1.280, `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` ghi đè các giới hạn này: con số bạn đặt thay thế **cả hai** giới hạn (`8192` nâng giới hạn ngắn hơn và hạ giới hạn dài hơn). Kể từ v2.1.299, mô tả và hướng dẫn từ các MCP server first-party của Anthropic tại `api.anthropic.com` đến Claude đầy đủ. Hãy đặt các chi tiết quan trọng ở gần đầu mô tả.
 
 ## MCP Prompts Như Lệnh Slash / MCP Prompts as Slash Commands
 
@@ -442,7 +442,7 @@ Cấu hình MCP hỗ trợ mở rộng biến môi trường với các mặc đ
 ```
 
 Các biến được mở rộng tại runtime:
-- `${VAR}` - Sử dụng biến môi trường, lỗi nếu không được đặt
+- `${VAR}` - Sử dụng biến môi trường; nếu biến chưa được đặt (và không có mặc định), server vẫn được tải với chuỗi `${VAR}` nguyên văn, và `claude mcp list` cùng `/mcp` cảnh báo về biến bị thiếu
 - `${VAR:-default}` - Sử dụng biến môi trường, fallback thành mặc định nếu không được đặt
 
 ### Ví Dụ 2: Thiết Lập Database MCP / Example 2: Database MCP Setup
@@ -1158,12 +1158,14 @@ export GITHUB_TOKEN="your_token"
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 10 tháng 10 năm 2026
-**Phiên Bản Claude Code**: 2.1.296
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/mcp
 - https://code.claude.com/docs/en/managed-mcp
 - https://code.claude.com/docs/en/mcp#configure-tool-search
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.285
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.296
+- https://code.claude.com/docs/en/mcp#tool-search-for-mcp-server-authors
+- https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcp-json
 **Các Mô Hình Tương Thích**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

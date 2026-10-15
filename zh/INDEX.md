@@ -367,7 +367,7 @@ documentation/
 
 **扩展功能**：
 - Scheduled Tasks：使用 `/loop` 和 cron 工具的周期任务
-- Chrome Integration：通过无头 Chromium 做浏览器自动化
+- Chrome Integration：通过 Claude in Chrome 扩展在你自己的 Chrome 中做浏览器自动化
 - Remote Control（扩展版）：连接方式、安全性、对比表
 - Keyboard Customization：自定义快捷键、组合键支持、上下文
 - Desktop App（扩展版）：连接器、`launch.json`、企业功能
@@ -424,7 +424,7 @@ documentation/
 - 自动化的重复工作流
 
 #### Chrome Integration
-- 通过无头 Chromium 进行浏览器自动化
+- 通过 Claude in Chrome 扩展在你自己的 Chrome 中进行浏览器自动化
 - 页面测试与抓取能力
 - 页面交互与数据提取
 
@@ -456,10 +456,10 @@ documentation/
 **核心 CLI 功能**：
 - `claude` - 启动交互式会话
 - `claude -p "prompt"` - 无头/非交互模式
-- `claude web` - 打开 Web 会话
+- `claude --cloud "task"` - 启动云端（Web）会话
 - `claude --model` - 选择模型（Sonnet 4.6、Opus 4.6）
 - `claude --permission-mode` - 设置权限模式
-- `claude --remote` - 通过 WebSocket 启用远程控制
+- `claude --remote-control` - 启动一个也能从 claude.ai 或 Claude 应用控制的会话
 
 ---
 
@@ -894,8 +894,8 @@ claude -p "Run tests and report results"
 
 ---
 
-**最后更新**：2026 年 9 月 19 日
-**Claude Code 版本**：2.1.278
+**最后更新**：2026 年 10 月 15 日
+**Claude Code 版本**：2.1.300
 **总示例数**：100+ 文件
 **分类数**：10 个功能
 **Hooks**：8 个自动化脚本
@@ -904,3 +904,6 @@ claude -p "Run tests and report results"
 **来源**：
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/chrome

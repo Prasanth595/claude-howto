@@ -378,7 +378,7 @@ Advanced capabilities for complex workflows.
 | `setup-auto-mode-permissions.py` | Seed `permissions.allow` for auto mode | Idempotent, `--dry-run` and opt-in flags |
 | Dynamic Workflows | Deterministic multi-agent orchestration via `/workflows` (v2.1.154) | Comprehensive audits, migrations, scale-out |
 | Scheduled Tasks | Recurring tasks with `/loop` and cron tools | Automated recurring workflows |
-| Chrome Integration | Browser automation via headless Chromium | Web testing and scraping |
+| Chrome Integration | Browser automation in your own Chrome via the Claude in Chrome extension | Web testing and scraping |
 | Remote Control (expanded) | Connection methods, security, comparison table, device cards | Remote session management (no longer a research preview) |
 | Cross-Session Messaging | `SendMessage` / `ListAgents`, including `notify_when_idle` (v2.1.236) | Coordinating sessions on the same machine |
 | Keyboard Customization | Custom keybindings, chord support, contexts | Personalized shortcuts |
@@ -409,7 +409,7 @@ Advanced capabilities for complex workflows.
 - Default size guideline is medium (aim for fewer than 10 agents) as of v2.1.219 — change it with **Dynamic workflow size** in `/config`
 
 ### Permission Modes
-- **manual**: Ask for approval on risky actions (renamed from `default` in v2.1.200; `default` still accepted)
+- **manual**: Ask before anything beyond reads (shown as Manual since v2.1.200; config value is still `default`)
 - **acceptEdits**: Auto-accept file edits, ask for others
 - **plan**: Read-only analysis, no modifications
 - **auto**: Everything, with background safety checks — a classifier reviews commands and protected-directory writes (configured via the `autoMode` settings object)
@@ -443,7 +443,7 @@ Advanced capabilities for complex workflows.
 - Automated recurring workflows
 
 ### Chrome Integration
-- Browser automation via headless Chromium
+- Browser automation in your own Chrome via the Claude in Chrome extension
 - Web testing and scraping capabilities
 - Page interaction and data extraction
 
@@ -481,10 +481,10 @@ Command-line interface usage patterns and reference.
 **Key CLI Features**:
 - `claude` - Start interactive session
 - `claude -p "prompt"` - Headless/non-interactive mode
-- `claude web` - Launch web session
+- `claude --cloud "task"` - Start a cloud (web) session
 - `claude --model` - Select model (Opus 5.5, Sonnet 5.5, Opus 5, Sonnet 5, Sonnet 4.6, Opus 4.8, Haiku 5.5, Haiku 4.5)
 - `claude --permission-mode` - Set permission mode
-- `claude --remote` - Enable remote control via WebSocket
+- `claude --remote-control` - Start a session you can also control from claude.ai or the Claude app
 
 ---
 
@@ -897,8 +897,8 @@ Want to add more examples? Follow the structure:
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/workflows#set-a-size-guideline
@@ -912,6 +912,9 @@ Want to add more examples? Follow the structure:
 - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 - https://code.claude.com/docs/en/model-config
 - https://code.claude.com/docs/en/workflows#let-claude-decide-with-ultracode
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/chrome
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5
 **Total Examples**: 100+ files
 **Categories**: 10 features

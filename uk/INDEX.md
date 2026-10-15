@@ -390,7 +390,7 @@ documentation/
 | `planning-mode-examples.md` | Приклади планування | REST API, міграція БД, рефакторинг |
 | `setup-auto-mode-permissions.py` | Початкове заповнення `permissions.allow` для режиму auto | Ідемпотентний, `--dry-run` та явні прапорці |
 | Заплановані завдання | Повторювані завдання з `/loop` та cron | Автоматичні повторювані процеси |
-| Інтеграція з Chrome | Автоматизація браузера через headless Chromium | Веб-тестування та скрейпінг |
+| Інтеграція з Chrome | Автоматизація браузера у вашому Chrome через розширення Claude in Chrome | Веб-тестування та скрейпінг |
 | Віддалене керування (розширено) | Методи підключення, безпека, порівняння | Управління віддаленими сесіями |
 | Налаштування клавіатури | Кастомні клавіші, акорди, контексти | Персоналізовані ярлики |
 | Десктопний застосунок (розширено) | Конектори, launch.json, Enterprise | Десктопна інтеграція |
@@ -457,7 +457,7 @@ documentation/
 
 ### Інтеграція з Chrome
 
-- Автоматизація браузера через headless Chromium
+- Автоматизація браузера у вашому Chrome через розширення Claude in Chrome
 - Веб-тестування та скрейпінг
 - Взаємодія зі сторінками та витяг даних
 
@@ -493,10 +493,10 @@ documentation/
 
 - `claude` — Запуск інтерактивної сесії
 - `claude -p "prompt"` — Headless/неінтерактивний режим
-- `claude web` — Запуск веб-сесії
+- `claude --cloud "task"` — Запуск хмарної (веб) сесії
 - `claude --model` — Вибір моделі (Sonnet 4.6, Opus 4.6)
 - `claude --permission-mode` — Встановлення режиму дозволів
-- `claude --remote` — Увімкнення віддаленого керування через WebSocket
+- `claude --remote-control` — Запуск сесії, якою також можна керувати з claude.ai або застосунку Claude
 
 ---
 
@@ -932,8 +932,8 @@ Run tests in background
 
 ---
 
-**Останнє оновлення**: 19 вересня 2026
-**Версія Claude Code**: 2.1.278
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Прикладів**: 100+ файлів
 **Категорій**: 10 функцій
 **Хуків**: 8 скриптів автоматизації
@@ -942,3 +942,6 @@ Run tests in background
 **Джерела**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/chrome

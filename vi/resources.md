@@ -243,8 +243,11 @@ Các bước này capture các core recommendations cho smooth workflows với C
 | **Hook Events** | 33 events: PreToolUse, PostToolUse, PostToolUseFailure, Stop, StopFailure, SubagentStart, SubagentStop, Notification, Elicitation, và nhiều hơn | [Hooks Guide](06-hooks/) |
 | **Agent Teams** | Phối hợp nhiều agents làm việc cùng nhau trên các complex tasks | [Subagents Guide](04-subagents/) |
 | **Scheduled Tasks** | Thiết lập recurring tasks với `/loop` và cron tools | [Advanced Features](09-advanced-features/) |
-| **Chrome Integration** | Browser automation với headless Chromium | [Advanced Features](09-advanced-features/) |
+| **Chrome Integration** | Browser automation trong Chrome của bạn qua tiện ích Claude in Chrome | [Advanced Features](09-advanced-features/) |
 | **Keyboard Customization** | Tùy chỉnh keybindings bao gồm chord sequences | [Advanced Features](09-advanced-features/) |
 
 ---
-**Cập Nhật Lần Cuối**: Tháng 4 năm 2026
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
+**Nguồn**:
+- https://code.claude.com/docs/en/chrome

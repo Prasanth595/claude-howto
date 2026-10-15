@@ -44,7 +44,8 @@ graph TD
 | `claude mcp serve` | Запуск Claude Code як MCP-сервера | `claude mcp serve` |
 | `claude agents` | Список усіх налаштованих субагентів | `claude agents` |
 | `claude auto-mode defaults` | Вивести стандартні правила auto mode як JSON | `claude auto-mode defaults` |
-| `claude --remote-control [name]` | Запуск Remote Control (це прапорець, а не підкоманда; аліас `--rc`) | `claude --rc` |
+| `claude remote-control` | Запуск сервера Remote Control (серверний режим, без локальної інтерактивної сесії; обслуговує кілька сесій, `--capacity` за замовчуванням 32) | `claude remote-control --name "My Project"` |
+| `claude --remote-control [name]` | Запуск інтерактивної сесії з увімкненим Remote Control (аліас `--rc`) | `claude --rc` |
 | `claude plugin` | Управління плагінами (встановлення, увімкнення, вимкнення) | `claude plugin install my-plugin` |
 | `claude auth login` | Вхід (підтримує `--email`, `--sso`) | `claude auth login --email user@example.com` |
 | `claude auth logout` | Вихід з поточного облікового запису | `claude auth logout` |
@@ -780,9 +781,9 @@ claude -p --output-format json "query"
 **Проблема:** `claude: command not found`
 
 **Рішення:**
-- Встановіть Claude Code: `npm install -g @anthropic-ai/claude-code`
-- Перевірте, що PATH включає глобальний bin-каталог npm
-- Спробуйте запуск з повним шляхом: `npx claude`
+- Встановіть Claude Code: `curl -fsSL https://claude.ai/install.sh | bash` (нативний, рекомендовано) або `npm install -g @anthropic-ai/claude-code`
+- Перевірте, що PATH включає `~/.local/bin` (нативне встановлення) або глобальний bin-каталог npm
+- Запустіть `claude doctor`
 
 ### Проблеми з API-ключем
 
@@ -837,9 +838,12 @@ claude -p --output-format json "query"
 *Частина серії посібників [Claude How To](../)*
 
 ---
-**Останнє оновлення**: 10 жовтня 2026
-**Версія Claude Code**: 2.1.296
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/cli-reference
 - https://code.claude.com/docs/en/model-config
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/setup
+- https://code.claude.com/docs/en/troubleshoot-install#command-not-found-claude-after-installation
 **Сумісні моделі**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

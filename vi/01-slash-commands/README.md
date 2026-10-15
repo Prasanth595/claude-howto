@@ -18,7 +18,7 @@ Lệnh slash là các lối tắt để điều khiển hành vi của Claude tr
 
 ## Tham Khảo Lệnh Tích Hợp Sẵn
 
-Lệnh tích hợp sẵn là các lối tắt cho các hành động phổ biến. Có **60+ lệnh tích hợp sẵn** và **10 skills được gói** sẵn. Gõ `/` trong Claude Code để xem danh sách đầy đủ, hoặc gõ `/` theo sau bởi bất kỳ chữ cái nào để lọc.
+Lệnh tích hợp sẵn là các lối tắt cho các hành động phổ biến. Có **60+ lệnh tích hợp sẵn** và **khoảng 20 skills được gói** sẵn. Gõ `/` trong Claude Code để xem danh sách đầy đủ, hoặc gõ `/` theo sau bởi bất kỳ chữ cái nào để lọc.
 
 | Lệnh | Mục Đích |
 |---------|---------|
@@ -198,7 +198,7 @@ Hướng dẫn cho Claude để theo khi lệnh này được gọi.
 | `user-invocable` | Nếu `false`, ẩn từ menu `/` | `true` |
 | `context` | Đặt thành `fork` để chạy trong tác nhân con cô lập | Không có |
 | `agent` | Loại tác nhân khi sử dụng `context: fork` | `general-purpose` |
-| `hooks` | Hooks theo phạm vi skill (PreToolUse, PostToolUse, Stop) | Không có |
+| `hooks` | Hooks được đăng ký khi skill chạy (mọi sự kiện hook; chúng vẫn hoạt động trong suốt phần còn lại của phiên) | Không có |
 
 ### Đối Số
 
@@ -233,6 +233,8 @@ Cách sử dụng: `/review-pr 456 high` → `$0`="456", `$1`="high"
 ### Bối Cảnh Động Với Lệnh Shell
 
 Thực thi các lệnh bash trước prompt sử dụng `` !`command` ``:
+
+> **Lưu ý (v2.1.299)**: Hooks `UserPromptSubmit` chạy trước khi lệnh được mở rộng, nên một hook chặn prompt cũng sẽ ngăn các lệnh `!` này chạy.
 
 ```yaml
 ---
@@ -300,6 +302,8 @@ Kiểm soát quyền truy cập MCP server trong quyền:
 - `mcp__github` - Truy cập toàn bộ MCP server GitHub
 - `mcp__github__*` - Truy cập wildcard cho tất cả công cụ
 - `mcp__github__get_issue` - Truy cập công cụ cụ thể
+
+> **v2.1.299+:** Một quy tắc chỉ áp dụng cho server mà nó nêu tên — `mcp__github` không còn khớp với server tên `github__x` hoặc `github_`. Với server có tên đã chuẩn hóa chứa `__`, hãy viết `mcp__<toàn bộ tên đã chuẩn hóa>__*` (điều này cũng áp dụng cho danh sách `tools:` của subagent).
 
 ## Kiến Trúc Lệnh
 
@@ -557,12 +561,16 @@ Nếu cả hai tồn tại với cùng tên, **skill sẽ được ưu tiên**. 
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 26 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.283
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/output-styles
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.281
+- https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents
+- https://code.claude.com/docs/en/permissions#mcp
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
 **Các Mô Hình Tương Thích**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5
 
 *Phần của series hướng dẫn [Claude How To](../)*

@@ -1,6 +1,10 @@
 #!/bin/bash
 # Send notifications on events
-# Hook: PostPush
+# Hook: PostToolUse (matcher: Bash) — runs after every Bash call; the script exits unless the command is a git push
+
+# Read the hook input and exit unless the Bash command is a git push
+INPUT=$(cat)
+echo "$INPUT" | grep -q '"command"[[:space:]]*:[[:space:]]*"[^"]*git push' || exit 0
 
 REPO_NAME=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)
 COMMIT_MSG=$(git log -1 --pretty=%B 2>/dev/null)

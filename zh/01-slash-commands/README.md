@@ -18,7 +18,7 @@ Slash command 是你在 Claude 的交互式会话中用来控制行为的快捷�
 
 ## 内置命令速查
 
-Claude Code 目前提供 55+ 个内置命令和 5 个内置 Skills。你可以在 Claude Code 中输入 `/` 查看全部，也可以输入 `/` 后继续键入字母进行筛选。
+Claude Code 目前提供 55+ 个内置命令和约 20 个内置 Skills。你可以在 Claude Code 中输入 `/` 查看全部，也可以输入 `/` 后继续键入字母进行筛选。
 
 | 命令 | 作用 |
 |---------|---------|
@@ -188,7 +188,7 @@ description: 这个命令的作用，以及何时使用它
 | `user-invocable` | 若为 `false`，不会出现在 `/` 菜单中 | `true` |
 | `context` | 设为 `fork` 时，在隔离 subagent 中运行 | 无 |
 | `agent` | `context: fork` 时使用的 agent 类型 | `general-purpose` |
-| `hooks` | Skill 范围内的 hooks（PreToolUse、PostToolUse、Stop） | 无 |
+| `hooks` | Skill 运行时注册的 hooks（支持任意 hook 事件；注册后在会话剩余时间内持续生效） | 无 |
 
 ### 参数
 
@@ -223,6 +223,8 @@ description: 按优先级审查 PR
 ### 用 Shell 命令注入动态上下文
 
 在 prompt 发送前，可用 `` !`command` `` 先执行 shell 命令：
+
+> **注意（v2.1.299）**：`UserPromptSubmit` hooks 会在命令展开之前运行，因此阻止该 prompt 的 hook 也会阻止这些 `!` 命令运行。
 
 ```yaml
 ---
@@ -290,6 +292,8 @@ MCP servers 可以把 prompt 暴露成 slash command：
 - `mcp__github` - 访问整个 GitHub MCP server
 - `mcp__github__*` - 通配符访问全部工具
 - `mcp__github__get_issue` - 访问某个特定工具
+
+> **v2.1.299+：** 规则只作用于它所指名的 server —— `mcp__github` 不再匹配名为 `github__x` 或 `github_` 的 server。对于规范化名称中包含 `__` 的 server，请写成 `mcp__<完整规范化名称>__*`（subagent 的 `tools:` 列表同样适用）。
 
 ## 命令架构
 
@@ -548,12 +552,16 @@ allowed-tools: Bash(npm *), Bash(git *)
 
 ---
 
-**最后更新**: 2026 年 9 月 26 日
-**Claude Code 版本**: 2.1.283
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/output-styles
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.281
+- https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents
+- https://code.claude.com/docs/en/permissions#mcp
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
 **兼容模型**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5
 
 ---

@@ -106,6 +106,8 @@ Skills 支持 `$ARGUMENTS`、`$0`、`$1` 等参数替换。
 
 你可以在 prompt 里插入 shell 命令结果：
 
+> **注意（v2.1.299）**：`UserPromptSubmit` hooks 会在命令展开之前运行，因此阻止该 prompt 的 hook 也会阻止这些 `!` 命令运行。
+
 ```md
 - 当前 git 状态：!`git status`
 - 当前 diff：!`git diff HEAD`
@@ -272,7 +274,9 @@ chmod +x ~/.claude/skills/*/scripts/*
 
 ---
 
-**最后更新**: 2026 年 9 月 2 日
-**Claude Code 版本**: 2.1.257
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/skills
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
+- https://code.claude.com/docs/en/changelog#2-1-299

@@ -479,10 +479,8 @@ User: Run tests in background
 
 Claude: Started task bg-1234
 
-/task list           # Show all tasks
-/task status bg-1234 # Check progress
-/task show bg-1234   # View output
-/task cancel bg-1234 # Cancel task
+/tasks    # View and manage background work (shells and subagents); stop a task from here
+Ctrl+B    # Move a running Bash command or agent to the background
 ```
 
 ### Starting Background Tasks
@@ -504,44 +502,19 @@ Claude: [Works on auth module while tests run in background]
 Claude: 📢 Background task bg-1234 completed:
 ✅ 245 tests passed
 ❌ 3 tests failed
-View results: /task show bg-1234
+View results: /tasks
 ```
 
 ### Managing Background Tasks
 
-**List active tasks**:
-```
-User: /task list
+Chạy `/tasks` (bí danh `/bashes`) để liệt kê các shell và subagent đang chạy, mở một mục để xem đầu ra, hoặc dừng nó. Không có lệnh con `/task` nào.
 
-Active background tasks:
-1. [bg-1234] Running tests (50% complete, 2min remaining)
-2. [bg-1235] Building Docker image (25% complete, 8min remaining)
-3. [bg-1236] Deploying to staging (90% complete, 30sec remaining)
-```
+```text
+User: /tasks
 
-**Check task status**:
-```
-User: /task status bg-1234
-
-Task bg-1234: Running tests
-Status: In progress
-Progress: 120/245 tests (49%)
-Started: 2025-11-08 10:30:15
-Estimated completion: 2025-11-08 10:34:22
-```
-
-**View task output**:
-```
-User: /task show bg-1234
-
-[Shows live output from the test run]
-```
-
-**Cancel task**:
-```
-User: /task cancel bg-1234
-
-Cancelled background task bg-1234
+[Opens the background-work view: running shells and subagents,
+ including subagents that have finished. Select one to see its
+ output, or stop it from here.]
 ```
 
 ### Example: Parallel Development
@@ -1284,8 +1257,8 @@ claude remote-control --name "Auth Refactor"
 |------|-------------|
 | `--name "title"` | Custom session title for easy identification |
 | `--verbose` | Show detailed connection logs |
-| `--sandbox` | Enable filesystem and network isolation |
-| `--no-sandbox` | Disable sandboxing (default) |
+
+> **Lưu ý (v2.1.300)**: `claude remote-control` không còn chấp nhận `--sandbox` hoặc `--no-sandbox` (chúng chưa bao giờ có tác dụng; truyền một trong hai giờ sẽ thoát với lỗi). Để chạy các phiên Remote Control trong sandbox, đặt `sandbox.enabled` trong một tệp cài đặt.
 
 ### Connecting to a session
 
@@ -1312,9 +1285,9 @@ Three ways to connect from another device:
 
 ### Limitations
 
-- One remote session per Claude Code instance
+- Một phiên từ xa cho mỗi tiến trình Claude Code tương tác — chế độ server (`claude remote-control`) phục vụ nhiều phiên cùng lúc (`--capacity`, mặc định 32)
 - Terminal must stay open on the host machine
-- Session times out after ~10 minutes if the network is unreachable
+- Nếu mạng không truy cập được, chế độ server thoát sau ~10 phút; phiên tương tác tiếp tục thử lại và kết nối lại khi mạng trở lại
 
 ### Use cases
 
@@ -1545,16 +1518,19 @@ Sandboxing provides OS-level filesystem and network isolation for Bash commands 
 
 ### Enabling Sandboxing
 
-**Slash command**:
-```
+**Slash command** (lưu lựa chọn vào `.claude/settings.local.json` cho dự án này):
+```text
 /sandbox
 ```
 
-**CLI flags**:
+**Tệp cài đặt** (mọi dự án): đặt `"sandbox": { "enabled": true }` trong `~/.claude/settings.json`.
+
+**Theo phiên**, không ghi vào tệp cài đặt:
 ```bash
-claude --sandbox       # Enable sandboxing
-claude --no-sandbox    # Disable sandboxing
+claude --settings '{"sandbox": {"enabled": true}}'
 ```
+
+> Không có cờ `claude --sandbox` / `--no-sandbox`. Từ v2.1.300, truyền chúng cho `claude remote-control` sẽ thoát với lỗi.
 
 ### Configuration Settings
 
@@ -1870,8 +1846,8 @@ For more information about Claude Code and related features:
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 30 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.285
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/permissions
 - https://code.claude.com/docs/en/auto-mode-classifier-billing
@@ -1881,4 +1857,10 @@ For more information about Claude Code and related features:
 - https://code.claude.com/docs/en/permission-modes#which-mode-a-session-starts-in
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.284
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.285
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/changelog#2-1-300
+- https://code.claude.com/docs/en/sandboxing
+- https://code.claude.com/docs/en/settings-reference#sandbox-enabled
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/interactive-mode
 **Các Mô Hình Tương Thích**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

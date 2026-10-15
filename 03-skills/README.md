@@ -93,7 +93,7 @@ sequenceDiagram
 | **Project** | `.claude/skills/<skill-name>/SKILL.md` | Team | Yes (via git) | Team standards |
 | **Plugin** | `<plugin>/skills/<skill-name>/SKILL.md` | Where enabled | Depends | Bundled with plugins |
 
-When skills share the same name across levels, higher-priority locations win: **enterprise > personal > project**. Personal skills override project ones by default; the `skillOverrides` setting (v2.1.129+) tunes that behavior — see [Controlling Skill Override Behavior](#controlling-skill-override-behavior-skilloverrides). Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict.
+When skills share the same name across levels, higher-priority locations win: **enterprise > personal > project**. With the same name in `~/.claude/skills/` and `.claude/skills/`, the personal one runs. To change a skill's visibility (not its precedence), use the `skillOverrides` setting (v2.1.129+) — see [Controlling Skill Override Behavior](#controlling-skill-override-behavior-skilloverrides). Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict.
 
 > **Subagent skill discovery (v2.1.133+)**: Subagents now discover project, user, and plugin skills via the Skill tool the same way the main session does. Earlier versions limited subagents to their own embedded set, which meant skill+subagent workflows quietly degraded; from v2.1.133 the same skill catalog is visible to both.
 
@@ -141,7 +141,7 @@ Show concrete examples of using this Skill.
 ### Recommended Fields
 
 - **description** (recommended): what the Skill does AND when to use it. If omitted, Claude Code uses the first paragraph of markdown content. The combined `description` + `when_to_use` text is truncated at **1,536 characters** in the skill listing (configurable via `skillListingMaxDescChars`). This is what Claude matches on to decide when to activate the skill.
-- **name** (optional): defaults to the skill's **directory name**. When supplied, it sets the display name — lowercase letters, numbers, hyphens only (max 64 characters). In Claude Code, `anthropic-skills` and `synced` are reserved and don't load outside a plugin; the stricter ban on "anthropic" or "claude" applies to skills uploaded to claude.ai or the Skills API. For plugin skills, `name` also sets the last segment of the command.
+- **name** (optional): defaults to the skill's **directory name**. When supplied, it sets the display name — lowercase letters, numbers, hyphens only (max 64 characters) is the recommended, portable form (required for claude.ai and the Skills API). Claude Code itself (v2.1.299+) skips a skill or command whose name contains hidden, direction-changing or blank-like characters, `<` or `>`, or exceeds 256 characters, until you rename it. In Claude Code, `anthropic-skills` and `synced` are reserved and don't load outside a plugin; the stricter ban on "anthropic" or "claude" applies to skills uploaded to claude.ai or the Skills API. For plugin skills, `name` also sets the last segment of the command.
 
 All SKILL.md frontmatter fields are optional; `description` is the only one that is recommended.
 
@@ -154,7 +154,7 @@ description: What this skill does and when to use it
 argument-hint: "[filename] [format]"        # Hint for autocomplete
 disable-model-invocation: true              # Only user can invoke
 user-invocable: false                       # Hide from slash menu
-allowed-tools: Read, Grep, Glob             # Restrict tool access
+allowed-tools: Read, Grep, Glob             # Pre-approve these tools (no permission prompts) while the skill runs
 disallowed-tools: Write, Edit               # Remove specific tools while active (v2.1.152)
 model: opus                                 # Specific model to use
 effort: high                                # Effort level override (low, medium, high, xhigh, max)
@@ -162,7 +162,7 @@ context: fork                               # Run in isolated subagent
 agent: Explore                              # Which agent type (with context: fork)
 background: false                           # Fork skills run in background (default true); false = foreground
 shell: bash                                 # Shell for commands: bash (default) or powershell
-hooks:                                      # Skill-scoped hooks
+hooks:                                      # Hooks registered when the skill is invoked
   PreToolUse:
     - matcher: "Bash"
       hooks:
@@ -174,7 +174,7 @@ paths: "src/api/**/*.ts"               # Glob patterns limiting when skill activ
 
 | Field | Description |
 |-------|-------------|
-| `name` | Lowercase letters, numbers, hyphens only (max 64 chars). `anthropic-skills` and `synced` are reserved in Claude Code. |
+| `name` | Recommended (portable): lowercase letters, numbers, hyphens only (max 64 chars). `anthropic-skills` and `synced` are reserved in Claude Code. |
 | `description` | What the Skill does AND when to use it. The combined `description` + `when_to_use` text is truncated at 1,536 chars in the skill listing (configurable via `skillListingMaxDescChars`). Critical for auto-invocation matching. |
 | `when_to_use` | Additional context for when Claude should invoke the skill. Appended to `description` in the skill listing and counts toward the 1,536-character cap. |
 | `argument-hint` | Hint shown in the `/` autocomplete menu (e.g., `"[filename] [format]"`). |
@@ -188,7 +188,7 @@ paths: "src/api/**/*.ts"               # Glob patterns limiting when skill activ
 | `agent` | Subagent type when `context: fork` (e.g., `Explore`, `Plan`, `general-purpose`). |
 | `background` | Only meaningful with `context: fork`. Defaults to `true` for `context: fork` skills, so they run in the background; set `false` to run them in the foreground. Added v2.1.218. |
 | `shell` | Shell used for `` !`command` `` substitutions and scripts: `bash` (default) or `powershell`. |
-| `hooks` | Hooks scoped to this skill's lifecycle (same format as global hooks). |
+| `hooks` | Hooks registered when the skill is invoked (same format as settings hooks; any event). They stay active for the rest of the session. |
 | `paths` | Glob patterns that limit when the skill is auto-activated. Comma-separated string or YAML list. Same format as path-specific rules. |
 | `arguments` | Declares the arguments the skill accepts, for autocomplete and argument substitution. |
 | `metadata` | Free-form key/value map for your own bookkeeping (e.g. `version`, `author`). Claude Code passes it through. |
@@ -289,6 +289,8 @@ You can stack slash-skills in a single invocation, like `/code-review /fix-issue
 ## Injecting Dynamic Context
 
 The `` !`command` `` syntax runs shell commands before the skill content is sent to Claude:
+
+> **Note (v2.1.299)**: `UserPromptSubmit` hooks run before the command expands, so a hook that blocks the prompt also stops these `!` commands from running.
 
 ```yaml
 ---
@@ -520,11 +522,11 @@ description: Create or update CLAUDE.md files following best practices for optim
 
 ## Core Principles
 
-**LLMs are stateless**: CLAUDE.md is the only file automatically included in every conversation.
+**LLMs are stateless**: CLAUDE.md is the main project file loaded into every conversation (alongside auto memory and unscoped rules).
 
 ### The Golden Rules
 
-1. **Less is More**: Keep under 300 lines (ideally under 100)
+1. **Less is More**: Keep each CLAUDE.md under 200 lines
 2. **Universal Applicability**: Only include information relevant to EVERY session
 3. **Don't Use Claude as a Linter**: Use deterministic tools instead
 4. **Never Auto-Generate**: Craft it manually with careful consideration
@@ -641,7 +643,7 @@ Can you help me review this code for security issues?
 /code-review-specialist src/auth/login.ts
 ```
 
-> **Note**: This local skill is installed as `code-review-specialist` so it does **not** collide with the built-in `/code-review` command (the renamed `/simplify`, shipped in Claude Code v2.1.146). If you copy it to `~/.claude/skills/code-review/` instead, it will shadow the built-in — keep the `-specialist` suffix to avoid that.
+> **Note**: This local skill is installed as `code-review-specialist` so it does **not** collide with the bundled `/code-review` skill (bug-focused review, alias `/review`). If you copy it to `~/.claude/skills/code-review/` instead, it replaces the bundled `/code-review` (though `/review` still runs the bundled one) — keep the `-specialist` suffix to avoid that.
 
 ### Updating a Skill
 
@@ -679,11 +681,14 @@ Skill(deploy *)
 
 ### Controlling Skill Override Behavior (`skillOverrides`)
 
-When a project skill and a user skill share the same name, project wins by default. The `skillOverrides` setting (v2.1.129+) lets you tune this. Add it to `~/.claude/settings.json` or project `.claude/settings.json`:
+`skillOverrides` (v2.1.129+) is a per-skill visibility map, not a precedence switch: it sets how each skill is shown from settings, without editing its SKILL.md. Each key is a skill name; the `/skills` menu writes it for you (saved to `.claude/settings.local.json`). Precedence is unchanged — a personal skill still beats a project skill of the same name. Add it to `~/.claude/settings.json` or project `.claude/settings.json`:
 
 ```json
 {
-  "skillOverrides": "name-only"
+  "skillOverrides": {
+    "deploy": "off",
+    "legacy-helper": "name-only"
+  }
 }
 ```
 
@@ -691,12 +696,12 @@ Accepted values:
 
 | Value | Behavior |
 |-------|----------|
-| `"on"` (default) | A repo skill can override a user skill of the same name. |
-| `"off"` | Disable overriding entirely — user skills always win. |
-| `"name-only"` | Match overrides only on skill name (ignore description / source). |
-| `"user-invocable-only"` | Only user-invocable skills can be overridden — model-invoked skills always come from their original location. |
+| `"on"` (default) | Name and description listed to Claude; shown in the `/` menu. |
+| `"name-only"` | Only the name is listed to Claude; shown in the `/` menu. |
+| `"user-invocable-only"` | Hidden from Claude; still shown in the `/` menu. |
+| `"off"` | Hidden from both Claude and the `/` menu. |
 
-Useful when team policy says "user-defined skills must always take precedence" (`"off"`) or "only allow narrow name-based overrides" (`"name-only"`).
+Plugin skills are not affected by `skillOverrides`; manage them through `/plugin`.
 
 ## Best Practices
 
@@ -899,8 +904,8 @@ Once you start building skills seriously, two things become essential: a library
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/skills
 - https://code.claude.com/docs/en/slash-commands
@@ -909,4 +914,12 @@ Once you start building skills seriously, two things become essential: a library
 - https://code.claude.com/docs/en/model-config#adjust-effort-level
 - https://code.claude.com/docs/en/settings-reference
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.286
+- https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents
+- https://code.claude.com/docs/en/skills#characters-a-skill-name-cant-hold
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/skills#pre-approve-tools-for-a-skill
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/memory#write-effective-instructions
+- https://code.claude.com/docs/en/memory
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

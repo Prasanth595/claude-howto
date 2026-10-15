@@ -123,13 +123,13 @@ claude -r "session"    # 按名称/ID 恢复会话
 | **Checkpoints** | 内置 | `Esc+Esc` 或 `/rewind` |
 | **Planning Mode** | 内置 | `/plan <task>` |
 | **Permission Modes（6 种）** | 内置 | `--allowedTools`、`--permission-mode` |
-| **Sessions** | 内置 | `/session <command>` |
+| **Sessions** | 内置 | `/resume`、`/rename`、`/branch`、`/fork` |
 | **Background Tasks** | 内置 | 在后台运行 |
-| **Remote Control** | 内置 | WebSocket API |
-| **Web Sessions** | 内置 | `claude web` |
-| **Git Worktrees** | 内置 | `/worktree` |
-| **Auto Memory** | 内置 | 自动保存到 `CLAUDE.md` |
-| **Task List** | 内置 | `/task list` |
+| **Remote Control** | 内置 | `claude --remote-control` 或 `/remote-control` |
+| **Web Sessions** | 内置 | `claude --cloud "task"` |
+| **Git Worktrees** | 内置 | `claude -w <name>` |
+| **Auto Memory** | 内置 | 自动保存到 `~/.claude/projects/<project>/memory/` |
+| **Task List** | 内置 | `Ctrl+T`（清单）、`/tasks`（后台工作） |
 | **Bundled Skills（5 个）** | 内置 | `/simplify`、`/loop`、`/claude-api`、`/voice`、`/browse` |
 
 ---
@@ -249,10 +249,10 @@ claude --permission-mode plan
 ### Agent 团队
 ```bash
 # 启用 agent 团队
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # 或者在 settings.json 中
-{ "agentTeams": { "enabled": true } }
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 
 # 用这句话开始："使用团队方式实现功能 X"
 ```
@@ -393,14 +393,14 @@ cp -r 03-skills/code-review-specialist ~/.claude/skills/
 | **MCP Elicitation** | MCP server 可在运行时请求用户输入 | 当 server 需要澄清时自动提示 |
 | **WebSocket MCP** | MCP 的 WebSocket 传输 | 在 `.mcp.json` 中配置 `ws://` URL |
 | **Plugin LSP** | 插件支持 Language Server Protocol | `userConfig`、`${CLAUDE_PLUGIN_DATA}` 变量 |
-| **Remote Control** | 通过 WebSocket API 控制 Claude Code | `claude --remote` 用于外部集成 |
-| **Web Sessions** | 基于浏览器的 Claude Code 接口 | 使用 `claude web` 打开 |
+| **Remote Control** | 从 claude.ai 或 Claude 应用操控本地会话 | `claude --remote-control`（会话内可用 `/remote-control`） |
+| **Web Sessions** | claude.ai/code 上的云端会话 | 在终端中用 `claude --cloud "task"` 启动 |
 | **Desktop App** | 原生桌面应用 | 从 claude.ai/download 下载 |
-| **Task List** | 管理后台任务 | `/task list`、`/task status <id>` |
-| **Auto Memory** | 从对话中自动保存记忆 | Claude 会自动保存关键上下文到 `CLAUDE.md` |
-| **Git Worktrees** | 用于并行开发的隔离工作区 | 使用 `/worktree` 创建隔离空间 |
+| **Task List** | 管理后台任务 | `/tasks`（别名 `/bashes`） |
+| **Auto Memory** | 从对话中自动保存记忆 | Claude 将笔记保存到 `~/.claude/projects/<project>/memory/MEMORY.md`；用 `/memory` 管理 |
+| **Git Worktrees** | 用于并行开发的隔离工作区 | `claude --worktree <name>`（或 `-w`） |
 | **Model Selection** | 在 Fable 5.1、Fable 5、Opus 5、Sonnet 5、Sonnet 4.6、Opus 4.8 和 Haiku 4.5 之间切换 | `/model` 或 `--model` 参数 |
-| **Agent Teams** | 协调多个 agent 执行任务 | 通过环境变量 `CLAUDE_AGENT_TEAMS=1` 启用 |
+| **Agent Teams** | 协调多个 agent 执行任务 | 通过环境变量 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 启用（实验性） |
 | **Scheduled Tasks** | 使用 `/loop` 运行周期任务 | `/loop 5m /command` 或 CronCreate 工具 |
 | **Chrome Integration** | 浏览器自动化 | `--chrome` 参数或 `/chrome` 命令 |
 | **Keyboard Customization** | 自定义按键绑定 | `/keybindings` 命令 |
@@ -507,7 +507,12 @@ echo $GITHUB_TOKEN
 
 ---
 
-**最后更新**：2026 年 9 月 2 日
-**Claude Code 版本**：2.1.257
+**最后更新**：2026 年 10 月 15 日
+**Claude Code 版本**：2.1.300
 **来源**：
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/memory#storage-location

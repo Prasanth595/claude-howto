@@ -248,8 +248,11 @@ graph TD
 | **Hook Events** | 33 події: PreToolUse, PostToolUse, PostToolUseFailure, Stop, StopFailure, SubagentStart, SubagentStop, Notification, Elicitation та інші | [Посібник з хуків](06-hooks/) |
 | **Agent Teams** | Координація кількох агентів для складних завдань | [Посібник з субагентів](04-subagents/) |
 | **Scheduled Tasks** | Налаштування повторюваних завдань з `/loop` та cron | [Просунуті функції](09-advanced-features/) |
-| **Chrome Integration** | Автоматизація браузера з headless Chromium | [Просунуті функції](09-advanced-features/) |
+| **Chrome Integration** | Автоматизація браузера у вашому Chrome через розширення Claude in Chrome | [Просунуті функції](09-advanced-features/) |
 | **Keyboard Customization** | Налаштування клавіатурних скорочень включаючи chord-послідовності | [Просунуті функції](09-advanced-features/) |
 
 ---
-**Останнє оновлення**: Квітень 2026
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
+**Джерела**:
+- https://code.claude.com/docs/en/chrome

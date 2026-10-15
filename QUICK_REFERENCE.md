@@ -92,7 +92,7 @@ chmod +x ~/.claude/hooks/*.sh
 /plan Task description
 
 # Permission modes (use --permission-mode flag)
-# manual         - Ask for approval on every action (formerly "default"; "default" still accepted as alias)
+# manual         - Ask for approval on every action (config value "default"; "manual" is its alias since v2.1.200)
 # acceptEdits    - Auto-accept file edits, ask for others
 # plan           - Read-only analysis, no modifications
 # auto           - Background classifier decides permissions automatically
@@ -102,7 +102,8 @@ chmod +x ~/.claude/hooks/*.sh
 # Session management
 /resume                # Resume a previous conversation (no args = picker of past sessions)
 /rename "name"         # Name the current session
-/fork <directive>      # Spawn a background subagent that inherits the conversation
+/fork [prompt]         # Copy the conversation into a new background session; keep working here
+/subtask <task>        # Spawn a forked subagent that inherits the conversation and reports back
 /branch [name]         # Switch into a copy of the conversation, preserving the original
 claude -c              # Continue most recent conversation
 claude -r "session"    # Resume session by name/ID
@@ -124,13 +125,13 @@ claude -r "session"    # Resume session by name/ID
 | **Checkpoints** | Built-in | `Esc+Esc` or `/rewind` |
 | **Planning Mode** | Built-in | `/plan <task>` |
 | **Permission Modes (6)** | Built-in | `--allowedTools`, `--permission-mode` |
-| **Sessions** | Built-in | `/session <command>` |
+| **Sessions** | Built-in | `/resume`, `/rename`, `/branch`, `/fork` |
 | **Background Tasks** | Built-in | Run in background |
-| **Remote Control** | Built-in | WebSocket API |
-| **Web Sessions** | Built-in | `claude web` |
-| **Git Worktrees** | Built-in | `/worktree` |
-| **Auto Memory** | Built-in | Auto-saves to CLAUDE.md |
-| **Task List** | Built-in | `/task list` |
+| **Remote Control** | Built-in | `claude --remote-control` or `/remote-control` |
+| **Web Sessions** | Built-in | `claude --cloud "task"` |
+| **Git Worktrees** | Built-in | `claude -w <name>` |
+| **Auto Memory** | Built-in | Auto-saves to `~/.claude/projects/<project>/memory/` |
+| **Task List** | Built-in | `Ctrl+T` (checklist), `/tasks` (background work) |
 | **Bundled Skills (10)** | Built-in | `/batch`, `/claude-api`, `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [pr#\|branch\|path]` *(explicit invocation only since v2.1.215 — Claude won't trigger this on its own; with no level given it reuses the last one you typed, v2.1.223)*, `/simplify` *(cleanup-only review; distinct from `/code-review` again since v2.1.154)*, `/debug`, `/fewer-permission-prompts`, `/loop`, `/run` *(v2.1.145+)*, `/run-skill-generator` *(v2.1.145+)*, `/verify` *(v2.1.145+; explicit invocation only since v2.1.215 — Claude won't trigger this on its own)* |
 
 ---
@@ -250,10 +251,10 @@ claude --permission-mode plan
 ### Agent Teams
 ```bash
 # Enable agent teams
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # Or in settings.json
-{ "agentTeams": { "enabled": true } }
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 
 # Start with: "Implement feature X using a team approach"
 ```
@@ -395,15 +396,15 @@ cp -r 03-skills/code-review-specialist ~/.claude/skills/
 | **Hooks (33 events)** | Expanded hook system with 5 types | command, http, mcp_tool, prompt, agent hook types |
 | **MCP Elicitation** | MCP servers can request user input at runtime | Auto-prompted when server needs clarification |
 | **Plugin LSP** | Language Server Protocol support for plugins | `userConfig`, `${CLAUDE_PLUGIN_DATA}` variable |
-| **Remote Control** | Control Claude Code via WebSocket API | `claude --remote` for external integrations |
-| **Web Sessions** | Browser-based Claude Code interface | `claude web` to launch |
+| **Remote Control** | Drive a local session from claude.ai or the Claude app | `claude --remote-control` (or `/remote-control` in a session) |
+| **Web Sessions** | Cloud sessions at claude.ai/code | `claude --cloud "task"` to start one from the terminal |
 | **Desktop App** | Native desktop application | Download from claude.ai/download |
-| **Task List** | Manage background tasks | `/task list`, `/task status <id>` |
-| **Auto Memory** | Automatic memory saving from conversations | Claude auto-saves key context to CLAUDE.md |
+| **Task List** | Manage background tasks | `/tasks` (alias `/bashes`) |
+| **Auto Memory** | Automatic memory saving from conversations | Claude saves notes to `~/.claude/projects/<project>/memory/MEMORY.md`; manage with `/memory` |
 | **AGENTS.md** *(v2.1.277)* | Cross-tool project-context file, read as project instructions when no `CLAUDE.md` exists at or above the working directory | Switch modes with **Project instructions** in `/config`. See [AGENTS.md](02-memory/README.md#agentsmd) |
-| **Git Worktrees** | Isolated workspaces for parallel development | `/worktree` to create isolated workspace |
+| **Git Worktrees** | Isolated workspaces for parallel development | `claude --worktree <name>` (or `-w`) |
 | **Model Selection** | Switch between Fable 5.1, Fable 5, Opus 5.5, Opus 5, Sonnet 5, Sonnet 4.6, Opus 4.8, Haiku 5.5, and Haiku 4.5 | `/model` — since v2.1.153 the choice is saved as the default for new sessions; press `s` for session-only |
-| **Agent Teams** | Coordinate multiple agents on tasks | Enable with `CLAUDE_AGENT_TEAMS=1` env var |
+| **Agent Teams** | Coordinate multiple agents on tasks | Enable with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` env var (experimental) |
 | **Dynamic Workflows** *(v2.1.154)* | Deterministic multi-agent orchestration; since v2.1.219 the default size guideline is medium (aim for fewer than 10 agents) | `/workflows` to view runs; ask Claude to create one; change the size via **Dynamic workflow size** in `/config` |
 | **Scheduled Tasks** | Recurring tasks with `/loop` | `/loop 5m /command` or CronCreate tool |
 | **Chrome Integration** | Browser automation | `--chrome` flag or `/chrome` command |
@@ -415,7 +416,7 @@ cp -r 03-skills/code-review-specialist ~/.claude/skills/
 | **Subagent Output Scanning** *(v2.1.210+)* | Scans subagent reports for prompt-injection patterns and neutralizes them | On by default, no opt-out |
 | **WebSearch Cap and Subagent Fan-Out Limits** *(v2.1.212, extended v2.1.219)* | 200 WebSearch calls per session, refilling at 100 calls/hour in interactive sessions since v2.1.290; concurrent-subagent cap (default 20) added in v2.1.217; since v2.1.219 subagents can spawn nested subagents up to **depth 3 by default** (v2.1.217 had disabled nesting). The 200-subagent-per-session spawn cap was **removed in v2.1.224** — there is no longer any limit on total subagents per session | `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION` (default 200; `/clear` resets), `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR` (default 100 interactive, 0 with `-p`), `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` (default 20), `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` (default 3; set 1 to disable) |
 | **Screen Reader Mode** *(v2.1.208)* | Plain-text rendering mode for screen readers | `--ax-screen-reader` flag, `CLAUDE_AX_SCREEN_READER=1`, or `"axScreenReader": true` in settings |
-| **Restricted Mode** *(v2.1.248+)* | Drops the built-in tools that run commands or code (Bash, PowerShell, REPL) and WebFetch unless `--tools` names them; ignores user, project, and local settings (managed settings and `--settings` still apply); confines file tools to the working directories; refuses `bypassPermissions` and cloud sessions | `claude --restricted`, or `CLAUDE_CODE_RESTRICTED=1` |
+| **Restricted Mode** *(v2.1.248+)* | Drops the built-in tools that run commands or code (such as Bash and PowerShell) and WebFetch unless `--tools` names them individually (not via the `default` preset); ignores user, project, and local settings (managed settings and `--settings` still apply); confines file tools to the working directories; refuses `bypassPermissions` and cloud sessions | `claude --restricted`, or `CLAUDE_CODE_RESTRICTED=1` |
 | **Subagent Cache TTL** *(v2.1.248+)* | `experimental.cacheTtl` agent-frontmatter field sets how long the subagent's prompt cache lives | Add `experimental:` with `cacheTtl: "5m"` (or `"1h"`) to the agent's frontmatter. See [Subagents](04-subagents/README.md) |
 | **Forced Subagent Model** *(v2.1.257+)* | `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` makes `CLAUDE_CODE_SUBAGENT_MODEL` override agent frontmatter. Since v2.1.251 the env var no longer wins by default — frontmatter (including `model: inherit`) takes precedence unless this is set | `CLAUDE_CODE_SUBAGENT_MODEL=sonnet CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1 claude` |
 
@@ -520,8 +521,8 @@ Getting started checklist:
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/workflows#set-a-size-guideline
 - https://code.claude.com/docs/en/memory#agents-md
@@ -533,4 +534,9 @@ Getting started checklist:
 - https://code.claude.com/docs/en/settings
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/env-vars
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/agent-teams
+- https://code.claude.com/docs/en/memory#storage-location
+- https://code.claude.com/docs/en/permission-modes
 **Compatible Models**: Claude Fable 5.1, Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

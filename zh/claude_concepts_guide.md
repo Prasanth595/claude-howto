@@ -263,8 +263,8 @@ sequenceDiagram
 |--------|------|------|------|
 | `name` | String | Agent 标识符 | `code-reviewer` |
 | `description` | String | 用途与触发词 | `Comprehensive code quality analysis` |
-| `tools` | List/String | 允许的能力 | `read, grep, diff, lint_runner` |
-| `system_prompt` | Markdown | 行为指令 | 自定义规范 |
+| `tools` | List/String | 允许的工具 | `Read, Grep, Glob, Bash` |
+| *（Markdown 正文）* | Markdown | 系统提示词 / 行为指令 | 自定义规范 |
 
 ### 工具访问层级
 
@@ -289,7 +289,7 @@ graph TD
 ---
 name: code-reviewer
 description: Comprehensive code quality and maintainability analysis
-tools: read, grep, diff, lint_runner
+tools: Read, Grep, Glob, Bash
 ---
 
 # Code Reviewer Agent
@@ -1331,7 +1331,7 @@ Claude Code 支持 **33 个 hook 事件**，分布在四类钩子中：
         "hooks": [
           {
             "type": "command",
-            "command": "prettier --write $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write"
           }
         ]
       }
@@ -1342,9 +1342,8 @@ Claude Code 支持 **33 个 hook 事件**，分布在四类钩子中：
 
 ### Hook 环境变量
 
-- `$CLAUDE_FILE_PATH`：当前被写入 / 编辑的文件
-- `$CLAUDE_TOOL_NAME`：正在使用的工具名
-- `$CLAUDE_SESSION_ID`：当前会话 ID
+- Hook 输入以 JSON 形式通过 stdin 传入（`session_id`、`tool_name`、`tool_input.file_path` 等），可用 `jq` 读取
+- `$CLAUDE_CODE_SESSION_ID`：当前会话 ID
 - `$CLAUDE_PROJECT_DIR`：项目目录路径
 
 ### 最佳实践
@@ -1446,10 +1445,7 @@ claude -p "Should we use microservices or monolith?"
 后台执行长任务而不阻塞当前对话。
 
 ```bash
-/task list
-/task status bg-1234
-/task show bg-1234
-/task cancel bg-1234
+/tasks               # 查看和管理后台工作（别名：/bashes）
 ```
 
 ### Permission Modes
@@ -1536,8 +1532,9 @@ claude -r "Feature"
 *适用于 Claude Fable 5、Claude Opus 5、Claude Sonnet 5、Claude Sonnet 4.6、Claude Opus 4.8、Claude Haiku 4.5*
 *现已覆盖：Hooks、Checkpoints、Planning Mode、Extended Thinking、Background Tasks、Permission Modes、Headless Mode、Session Management、Auto Memory、Agent Teams、Scheduled Tasks、Chrome Integration、Bundled Skills 等概念。*
 
-**最后更新**：2026 年 9 月 26 日
-**Claude Code 版本**：2.1.283
+**最后更新**：2026 年 10 月 15 日
+**Claude Code 版本**：2.1.300
 **来源**：
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/sub-agents
+- https://code.claude.com/docs/en/commands

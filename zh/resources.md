@@ -244,5 +244,12 @@ graph TD
 | **Hook Events** | 33 个事件：PreToolUse、PostToolUse、PostToolUseFailure、Stop、StopFailure、SubagentStart、SubagentStop、Notification、Elicitation 等 | [Hooks 指南](06-hooks/README.md) |
 | **Agent Teams** | 协调多个 agent 共同处理复杂任务 | [Subagents 指南](04-subagents/README.md) |
 | **Scheduled Tasks** | 用 `/loop` 和 cron 工具设置周期性任务 | [高级功能](09-advanced-features/README.md) |
-| **Chrome Integration** | 使用无头 Chromium 做浏览器自动化 | [高级功能](09-advanced-features/README.md) |
+| **Chrome Integration** | 通过 Claude in Chrome 扩展在你自己的 Chrome 中做浏览器自动化 | [高级功能](09-advanced-features/README.md) |
 | **Keyboard Customization** | 自定义按键绑定，包括组合键序列 | [高级功能](09-advanced-features/README.md) |
+
+---
+
+**最后更新**：2026 年 10 月 15 日
+**Claude Code 版本**：2.1.300
+**来源**：
+- https://code.claude.com/docs/en/chrome

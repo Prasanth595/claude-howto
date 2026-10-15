@@ -19,10 +19,10 @@
 | **Tác Nhân Con** | 6 | 6 | 12 | [04-subagents/](04-subagents/) |
 | **Skills** | 10 bundled | 5 | 15 | [03-skills/](03-skills/) |
 | **Plugins** | - | 3 | 3 | [07-plugins/](07-plugins/) |
-| **MCP Servers** | 1 | 4 | 5 | [05-mcp/](05-mcp/) |
+| **MCP Servers** | - | 4 | 4 | [05-mcp/](05-mcp/) |
 | **Hooks** | 33 sự kiện | 9 | 42 | [06-hooks/](06-hooks/) |
 | **Bộ Nhớ** | 7 loại | 3 | 10 | [02-memory/](02-memory/) |
-| **Tổng** | **117** | **38** | **155** | |
+| **Tổng** | **116** | **38** | **154** | |
 
 ---
 
@@ -54,7 +54,7 @@ Commands là các lệnh tắt do người dùng gọi thực hiện các hành 
 | `/plugin` | Quản lý plugins | Cài đặt/gỡ mở rộng |
 | `/plan` | Vào planning mode | Triển khai phức tạp |
 | `/rewind` | Rewind về checkpoint | Hoàn tác thay đổi, khám phá alternatives |
-| `/checkpoint` | Quản lý checkpoints | Lưu/khôi phục trạng thái |
+| `/checkpoint` | Bí danh của `/rewind` | Giống `/rewind` |
 | `/cost` | Hiển thị chi phí usage token | Giám sát chi tiêu |
 | `/context` | Hiển thị usage context window | Quản lý độ dài conversation |
 | `/export` | Xuất conversation | Lưu để tham khảo |
@@ -69,10 +69,8 @@ Commands là các lệnh tắt do người dùng gọi thực hiện các hành 
 | `/release-notes` | Hiển thị release notes | Kiểm tra tính năng mới |
 | `/remote-control` | Bật điều khiển từ xa | Truy cập từ xa |
 | `/permissions` | Quản lý permissions | Kiểm soát truy cập |
-| `/session` | Quản lý sessions | Workflows đa session |
 | `/rename` | Đổi tên session hiện tại | Tổ chức sessions |
 | `/resume` | Tiếp tục session trước | Tiếp tục làm việc |
-| `/todo` | Xem/quản lý todo list | Theo dõi tasks |
 | `/tasks` | Xem background tasks | Giám sát operations async |
 | `/copy` | Sao chép response cuối vào clipboard | Chia sẻ output nhanh |
 | `/teleport` | Chuyển session sang máy khác | Tiếp tục làm việc từ xa |
@@ -120,7 +118,7 @@ Claude Code hỗ trợ 6 permission modes điều khiển cách tool use đượ
 |------|-------------|-------------|
 | `default` | Hỏi cho mỗi tool call | Sử dụng tương tác tiêu chuẩn |
 | `acceptEdits` | Tự động chấp nhận edits file, hỏi cho các khác | Workflows chỉnh sửa tin cậy |
-| `plan` | Chỉ tools read-only, không ghi | Lập kế hoạch và khám phá |
+| `plan` | Nghiên cứu và đề xuất kế hoạch; không sửa mã nguồn cho đến khi bạn phê duyệt | Lập kế hoạch và khám phá |
 | `auto` | Tất cả hành động, có kiểm tra từ bộ phân loại an toàn nền | Tác vụ dài, giảm số lần nhắc quyền |
 | `bypassPermissions` | Bỏ qua tất cả kiểm tra permissions | CI/CD, môi trường headless |
 | `dontAsk` | Bỏ qua tools cần yêu cầu permission | Scripting không tương tác |
@@ -152,10 +150,10 @@ Các trợ lý AI chuyên biệt với context bị cô lập cho các tasks c�
 |-------|------|-------------|
 | `name` | string | Định danh agent |
 | `description` | string | Agent làm gì |
-| `model` | string | Ghi đè model (ví dụ: `haiku-4.5`) |
+| `model` | string | Ghi đè model (`sonnet`, `opus`, `haiku`, `fable`, model ID đầy đủ, hoặc `inherit`) |
 | `tools` | array | Danh sách tools được phép |
-| `effort` | string | Mức độ effort lý luận (`low`, `medium`, `high`) |
-| `initialPrompt` | string | System prompt được chèn khi agent bắt đầu |
+| `effort` | string | Mức độ effort (`low`, `medium`, `high`, `xhigh`, `max`; tùy model) |
+| `initialPrompt` | string | Lượt user đầu tiên được tự động gửi khi agent chạy làm agent của session chính (`--agent`) |
 | `disallowedTools` | array | Tools bị từ chối rõ ràng cho agent này |
 
 ### Custom Subagents (Ví Dụ)
@@ -216,9 +214,9 @@ Skills hỗ trợ YAML frontmatter trong `SKILL.md` để cấu hình:
 |-------|------|-------------|
 | `name` | string | Tên hiển thị skill |
 | `description` | string | Skill làm gì |
-| `autoInvoke` | array | Cụm từ kích hoạt cho auto-invocation |
-| `effort` | string | Mức độ effort lý luận (`low`, `medium`, `high`) |
-| `shell` | string | Shell để dùng cho scripts (`bash`, `zsh`, `sh`) |
+| `when_to_use` | string | Cụm từ kích hoạt hoặc ví dụ yêu cầu, được nối vào `description` |
+| `effort` | string | Mức độ effort (`low`, `medium`, `high`, `xhigh`, `max`; tùy model) |
+| `shell` | string | Shell cho các khối `` !`command` `` inline (`bash` mặc định, hoặc `powershell`) |
 
 **Tham Chiếu**: [03-skills/](03-skills/) | [Tài Liệu Chính Thức](https://code.claude.com/docs/en/skills)
 
@@ -294,7 +292,7 @@ Máy chủ Model Context Protocol cho truy cập công cụ và API bên ngoài.
 | **Asana** | Quản lý dự án | Theo dõi tasks | Project | Cấu hình trong settings |
 | **Stripe** | Dữ liệu thanh toán | Phân tích tài chính | Project | Cấu hình trong settings |
 | **Memory** | Bộ nhớ lưu trữ | Nhớ lại qua sessions | User | Cấu hình trong settings |
-| **Context7** | Tài liệu thư viện | Tra cứu docs cập nhật | Built-in | Built-in |
+| **Context7** | Tài liệu thư viện | Tra cứu docs cập nhật | User | Cấu hình trong settings (server bên thứ ba) |
 
 > **Phạm Vi**: `Project` = team (`.mcp.json`), `User` = cá nhân (`~/.claude.json`), `Built-in` = được cài trước
 
@@ -332,10 +330,10 @@ Tự động hóa dựa trên sự kiện thực thi shell commands trên các s
 | Event | Mô Tả | Khi Được Kích Hoạt | Use Cases |
 |-------|-------------|----------------|-----------|
 | `SessionStart` | Session bắt đầu/tiếp tục | Khởi tạo session | Tasks thiết lập |
-| `Setup` | Thiết lập môi trường ban đầu (một lần mỗi session) | Bootstrap session lần đầu | Cài đặt tooling, cài dependencies |
+| `Setup` | Chạy thiết lập hoặc bảo trì repository | Chỉ với `--init-only`, hoặc `--init`/`--maintenance` cùng `-p` | Cài đặt tooling, cài dependencies |
 | `InstructionsLoaded` | Hướng dẫn được tải | CLAUDE.md hoặc file rules được tải | Xử lý hướng dẫn tùy chỉnh |
 | `UserPromptSubmit` | Trước khi xử lý prompt | User gửi tin nhắn | Xác thực input |
-| `UserPromptExpansion` | Prompt được mở rộng (@-mentions, slash commands) | Sau khi mở rộng, trước khi gửi | Biến đổi hoặc kiểm tra prompt đã mở rộng |
+| `UserPromptExpansion` | Một slash command được gõ (skill, custom command, hoặc MCP prompt) mở rộng thành prompt | Sau `UserPromptSubmit`, trước khi prompt đã mở rộng đến Claude | Chặn dùng `/command` trực tiếp, thêm context theo skill, ghi log commands |
 | `PreToolUse` | Trước khi thực thi tool | Trước khi bất kỳ tool chạy | Xác thực, logging |
 | `PermissionRequest` | Dialog permission được hiển thị | Trước hành động nhạy cảm | Flows phê duyệt tùy chỉnh |
 | `PermissionDenied` | Người dùng từ chối yêu cầu quyền | Sau khi từ chối quyền | Ghi log, phân tích, thực thi chính sách |
@@ -442,7 +440,7 @@ cp ../02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | Tính Năng | Mô Tả | Cách Dùng |
 |---------|-------------|------------|
 | **Remote Control** | Điều khiển sessions Claude Code từ xa qua API | Sử dụng API điều khiển từ xa để gửi prompts và nhận responses theo chương trình |
-| **Web Sessions** | Chạy Claude Code trong môi trường dựa trên trình duyệt | Truy cập qua `claude web` hoặc qua Anthropic Console |
+| **Web Sessions** | Chạy Claude Code trong cloud session | Bắt đầu bằng `claude --cloud "task"` hoặc tại claude.ai/code |
 | **Desktop App** | Ứng dụng desktop native cho Claude Code | Sử dụng `/desktop` hoặc tải từ website Anthropic |
 | **Agent Teams** | Phối hợp nhiều agents làm việc trên các tasks liên quan | Cấu hình teammate agents cộng tác và chia sẻ context |
 | **Task List** | Quản lý và giám sát background tasks | Sử dụng `/tasks` để xem và quản lý operations nền |
@@ -452,7 +450,7 @@ cp ../02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | **MCP OAuth** | Xác thực OAuth cho MCP servers | Cấu hình credentials OAuth trong settings MCP server để truy cập an toàn |
 | **MCP Tool Search** | Tìm kiếm và khám phá MCP tools động | Sử dụng tìm kiếm tool để tìm MCP tools có sẵn qua các servers được kết nối |
 | **Scheduled Tasks** | Thiết lập tasks định kỳ với `/loop` và cron tools | Sử dụng `/loop 5m /command` hoặc công cụ CronCreate |
-| **Chrome Integration** | Tự động hóa trình duyệt với headless Chromium | Sử dụng flag `--chrome` hoặc command `/chrome` |
+| **Chrome Integration** | Điều khiển Chrome/Edge của chính bạn (cửa sổ hiển thị, dùng thông tin đăng nhập của bạn) qua extension Claude in Chrome | Sử dụng flag `--chrome` hoặc command `/chrome` |
 | **Keyboard Customization** | Tùy chỉnh keybindings bao gồm hỗ trợ chord | Sử dụng `/keybindings` hoặc chỉnh sửa `~/.claude/keybindings.json` |
 | **Auto Mode** | Vận hành hoàn toàn tự động với kiểm tra từ bộ phân loại an toàn nền | `Shift+Tab` để chuyển sang, hoặc `--permission-mode auto` |
 | **Channels** | Communication đa kênh (Telegram, Slack, v.v.) (Research Preview) | Cấu hình plugins channels; Tháng 3 năm 2026 |
@@ -522,8 +520,8 @@ chmod +x ~/.claude/hooks/*.sh
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 10 tháng 10 năm 2026
-**Phiên Bản Claude Code**: 2.1.296
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/commands
@@ -531,3 +529,8 @@ chmod +x ~/.claude/hooks/*.sh
 - https://code.claude.com/docs/en/plugins-reference
 - https://code.claude.com/docs/en/discover-plugins
 - https://code.claude.com/docs/en/sub-agents
+- https://code.claude.com/docs/en/permission-modes
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/skills
+- https://code.claude.com/docs/en/mcp
+- https://code.claude.com/docs/en/chrome

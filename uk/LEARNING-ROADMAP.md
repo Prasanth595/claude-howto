@@ -422,7 +422,7 @@ claude --permission-mode auto "implement the feature"
 claude --permission-mode auto "implement user settings page"
 
 # Вправа 6: Команди агентів
-export CLAUDE_AGENT_TEAMS=1
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 # Попросіть Claude: "Implement feature X using a team approach"
 
 # Вправа 7: Заплановані завдання
@@ -790,10 +790,11 @@ done
 
 ---
 
-**Останнє оновлення**: 2 вересня 2026
-**Версія Claude Code**: 2.1.257
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/agent-teams
 **Підтримується**: Контриб'ютори Claude How-To
 **Ліцензія**: Освітні цілі, вільне використання та адаптація
 

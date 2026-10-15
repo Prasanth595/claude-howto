@@ -40,7 +40,8 @@ graph TD
 | `claude mcp serve` | 将 Claude Code 作为 MCP server 运行 | `claude mcp serve` |
 | `claude agents` | 列出所有已配置的 subagents | `claude agents` |
 | `claude auto-mode defaults` | 以 JSON 打印 auto mode 默认规则 | `claude auto-mode defaults` |
-| `claude --remote-control [name]` | 启动 Remote Control（这是一个 flag，不是子命令；别名 `--rc`） | `claude --rc` |
+| `claude remote-control` | 启动 Remote Control 服务器（服务器模式，没有本地交互式会话；可服务多个会话，`--capacity` 默认 32） | `claude remote-control --name "My Project"` |
+| `claude --remote-control [name]` | 启动启用了 Remote Control 的交互式会话（别名 `--rc`） | `claude --rc` |
 | `claude plugin` | 管理插件（安装、启用、禁用） | `claude plugin install my-plugin` |
 | `claude auth login` | 登录（支持 `--email`、`--sso`） | `claude auth login --email user@example.com` |
 | `claude auth logout` | 注销当前账号 | `claude auth logout` |
@@ -642,8 +643,9 @@ claude --working-directory ./backend --mcp-config ./mcp.json
 
 ---
 
-**最后更新**: 2026 年 10 月 10 日
-**Claude Code 版本**: 2.1.296
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/cli-reference
 - https://code.claude.com/docs/en/model-config
+- https://code.claude.com/docs/en/remote-control

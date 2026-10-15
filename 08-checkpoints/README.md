@@ -33,7 +33,7 @@ You can access and manage checkpoints in two primary ways:
 Press `Esc` twice (`Esc` + `Esc`) to open the checkpoint interface and browse saved checkpoints.
 
 ### Using Slash Command
-Use the `/rewind` command (alias: `/checkpoint`) for quick access:
+Use the `/rewind` command (aliases: `/checkpoint`, `/undo`) for quick access:
 
 ```bash
 # Open rewind interface
@@ -63,7 +63,7 @@ When you rewind, you are presented with a menu of six options:
 Claude Code automatically creates checkpoints for you:
 
 - **Every user prompt** - A new checkpoint is created with each user input
-- **Persistent** - Checkpoints persist across sessions
+- **Persistent** - Checkpoints are saved with the conversation, so `/rewind` still works after you resume a session
 - **Auto-cleaned** - Checkpoints are automatically cleaned up after 30 days
 
 This means you can always rewind to any previous point in your conversation, from a few minutes ago to days before.
@@ -302,7 +302,7 @@ Use both together:
 
 - **`Esc` + `Esc`** - Open checkpoint browser
 - **`/rewind`** - Alternative way to access checkpoints
-- **`/checkpoint`** - Alias for `/rewind`
+- **`/checkpoint`**, **`/undo`** - Aliases for `/rewind`
 
 ## Knowing When to Rewind: Context Monitoring
 
@@ -337,11 +337,12 @@ Remember: checkpoints are not a replacement for git. Use checkpoints for rapid e
 
 ---
 
-**Last Updated**: September 19, 2026
-**Claude Code Version**: 2.1.278
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/checkpointing
 - https://code.claude.com/docs/en/settings
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.117
 - https://code.claude.com/docs/en/model-config
+- https://code.claude.com/docs/en/commands
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

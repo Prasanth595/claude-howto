@@ -140,7 +140,7 @@ Take the self-assessment or pick your level:
 
 ## Get Started in 15 Minutes
 
-> **Installation note**: Starting in v2.1.113, Claude Code ships as a native per-platform binary (macOS/Linux/Windows). `npm install -g @anthropic-ai/claude-code` still works — the native binary is downloaded as an optional dep on first use. As of v2.1.116, downloads come from `https://downloads.claude.ai/claude-code-releases` — corporate proxies must allowlist this host.
+> **Installation note**: Starting in v2.1.113, Claude Code ships as a native per-platform binary (macOS/Linux/Windows). The recommended install is the native installer (`curl -fsSL https://claude.ai/install.sh | bash`); `npm install -g @anthropic-ai/claude-code` still works and pulls the same native binary through a per-platform optional dependency at install time. As of v2.1.116, downloads come from `https://downloads.claude.ai/claude-code-releases` — corporate proxies must allowlist this host.
 
 ```bash
 # 1. Clone the guide
@@ -561,7 +561,7 @@ Configure hooks in `~/.claude/settings.json`:
 - **Planning Mode** — Create detailed implementation plans before coding
 - **Extended Thinking** — Deep reasoning for complex problems (toggle with `Alt+T` / `Option+T`)
 - **Background Tasks** — Run long operations without blocking
-- **Permission Modes** — `manual` (formerly `default`; `default` still accepted), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`
+- **Permission Modes** — `manual` (config value `default`), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`
 - **Headless Mode** — Run Claude Code in CI/CD: `claude -p "Run tests and generate report"`
 - **Session Management** — `/resume`, `/rename`, `/fork`, `/branch`, `claude -c`, `claude -r`
 - **Configuration** — Customize behavior in `~/.claude/settings.json`
@@ -873,8 +873,8 @@ MIT License - see [LICENSE](LICENSE). Free to use, modify, and distribute. The o
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/hooks
@@ -887,4 +887,5 @@ MIT License - see [LICENSE](LICENSE). Free to use, modify, and distribute. The o
 - https://code.claude.com/docs/en/model-config
 - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.296
+- https://code.claude.com/docs/en/setup
 **Compatible Models**: Claude Fable 5.1, Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

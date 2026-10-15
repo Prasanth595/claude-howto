@@ -17,12 +17,12 @@
 |---------|----------|----------|-------|-----------|
 | **Slash Commands** | 60+ | 8 | 68+ | [01-slash-commands/](01-slash-commands/) |
 | **Subagents** | 6 | 9 | 15 | [04-subagents/](04-subagents/) |
-| **Skills** | 10 bundled | 6 | 16 | [03-skills/](03-skills/) |
+| **Skills** | 20 bundled | 6 | 26 | [03-skills/](03-skills/) |
 | **Plugins** | - | 3 | 3 | [07-plugins/](07-plugins/) |
-| **MCP Servers** | 1 | 4 | 5 | [05-mcp/](05-mcp/) |
+| **MCP Servers** | - | 4 | 4 | [05-mcp/](05-mcp/) |
 | **Hooks** | 33 events | 11 | 44 | [06-hooks/](06-hooks/) |
 | **Memory** | 7 types | 3 | 10 | [02-memory/](02-memory/) |
-| **Total** | **117** | **44** | **161** | |
+| **Total** | **126** | **44** | **170** | |
 
 ---
 
@@ -56,7 +56,7 @@ Commands are user-invoked shortcuts that execute specific actions.
 | `/proactive` | Alias for `/loop` (v2.1.105) | Same as `/loop` |
 | `/recap` | Show session recap when returning to a session | After being away, get context on what was done |
 | `/rewind` | Rewind to checkpoint | Undo changes, explore alternatives |
-| `/checkpoint` | Manage checkpoints | Save/restore states |
+| `/checkpoint` | Alias for `/rewind` | Same as `/rewind` |
 | `/cost` | Shortcut alias that opens the cost tab of `/usage` (v2.1.118+) | Monitor spending |
 | `/context` | Show context window usage | Manage conversation length |
 | `/export` | Export conversation | Save for reference |
@@ -72,10 +72,8 @@ Commands are user-invoked shortcuts that execute specific actions.
 | `/release-notes` | Show release notes | Check new features |
 | `/remote-control` | Enable remote control | Remote access |
 | `/permissions` | Manage permissions | Control access |
-| `/session` | Manage sessions | Multi-session workflows |
 | `/rename` | Rename current session | Organize sessions |
 | `/resume` | Resume previous session | Continue work |
-| `/todo` | View/manage todo list | Track tasks |
 | `/tui` | Toggle fullscreen TUI (text user interface) mode | Flicker-free rendering in fullscreen/tmux |
 | `/tasks` | View background tasks | Monitor async operations |
 | `/copy` | Copy last response to clipboard | Share output quickly |
@@ -91,7 +89,7 @@ Commands are user-invoked shortcuts that execute specific actions.
 | `/stickers` | View session stickers | Fun rewards |
 | `/fast` | Toggle fast output mode; applies to **Opus 5.5** (the default since v2.1.280), **Opus 5, and Opus 4.8** | Speed up responses |
 | `/terminal-setup` | Configure terminal integration | Setup terminal features |
-| `/undo` | **No longer documented** — added as an alias for `/rewind` in v2.1.108, but it appears nowhere in the official commands reference | Use `/rewind` (or `Esc Esc`) instead |
+| `/undo` | Alias for `/rewind` (v2.1.108) | Same as `/rewind` |
 | `/upgrade` | Check for updates | Version management |
 | `/team-onboarding` | Generate a teammate ramp-up guide from this project's Claude Code usage | Onboarding new teammates (v2.1.101) |
 | `/code-review ultra` | Run a cloud multi-agent code review over your current changes. `/ultrareview` remains as an alias; `/code-review ultra` is the preferred invocation. Includes 3 free runs on Pro and Max, then requires usage credits | Deep pre-merge review across multiple agents (v2.1.112) |
@@ -128,9 +126,9 @@ Claude Code supports 6 permission modes that control how tool use is authorized.
 
 | Mode | Description | When to Use |
 |------|-------------|-------------|
-| `manual` | Prompt for each tool call | Standard interactive use (renamed from `default` in v2.1.200; `default` still accepted) |
+| `manual` | Prompt for each tool call | Standard interactive use (shown as Manual since v2.1.200; config value is still `default`, `manual` is an alias) |
 | `acceptEdits` | Auto-accept file edits, prompt for others | Trusted editing workflows |
-| `plan` | Read-only tools only, no writes | Planning and exploration |
+| `plan` | Research and propose a plan; no source edits until you approve it | Planning and exploration |
 | `auto` | All actions, with background safety classifier checks | Long tasks, reducing prompt fatigue |
 | `bypassPermissions` | Skip all permission checks | CI/CD, headless environments |
 | `dontAsk` | Skip tools that would require permission | Non-interactive scripting |
@@ -164,10 +162,10 @@ Specialized AI assistants with isolated contexts for specific tasks.
 |-------|------|-------------|
 | `name` | string | Agent identifier |
 | `description` | string | What the agent does |
-| `model` | string | Model override (e.g., `haiku-4.5`) |
+| `model` | string | Model override (`sonnet`, `opus`, `haiku`, `fable`, a full model ID, or `inherit`) |
 | `tools` | array | Allowed tools list |
-| `effort` | string | Reasoning effort level (`low`, `medium`, `high`) |
-| `initialPrompt` | string | System prompt injected at agent start |
+| `effort` | string | Effort level (`low`, `medium`, `high`, `xhigh`, `max`; depends on model) |
+| `initialPrompt` | string | First user turn auto-submitted when the agent runs as the main session agent (`--agent`) |
 | `disallowedTools` | array | Tools explicitly denied to this agent |
 
 ### Custom Subagents (Examples)
@@ -229,9 +227,9 @@ Skills support YAML frontmatter in `SKILL.md` for configuration:
 |-------|------|-------------|
 | `name` | string | Skill display name |
 | `description` | string | What the skill does |
-| `autoInvoke` | array | Trigger phrases for auto-invocation |
-| `effort` | string | Reasoning effort level (`low`, `medium`, `high`) |
-| `shell` | string | Shell to use for scripts (`bash`, `zsh`, `sh`) |
+| `when_to_use` | string | Trigger phrases or example requests appended to `description` |
+| `effort` | string | Effort level (`low`, `medium`, `high`, `xhigh`, `max`; depends on model) |
+| `shell` | string | Shell for inline `` !`command` `` blocks (`bash` default, or `powershell`) |
 
 **Reference**: [03-skills/](03-skills/) | [Official Docs](https://code.claude.com/docs/en/skills)
 
@@ -244,17 +242,26 @@ cp -r 03-skills/* ~/.claude/skills/
 
 | Skill | Description | When Auto-Invoked |
 |-------|-------------|-------------------|
+| `/artifact-capabilities` | Load the reference for the runtime capabilities a published artifact can use (connectors, file downloads) | Before building an artifact page that uses one |
+| `/artifact-diagramming` *(v2.1.221+)* | Load diagramming guidance for artifacts: when a diagram helps, what to draw, inline SVG legible in light and dark themes | Drawing a diagram in an artifact |
 | `/batch` | Run prompts on multiple files | Batch operations |
 | `/claude-api` | Build apps with Claude API | API development |
+| `/claude-in-chrome [task]` | Carry out a task in your browser (test a page, fill a form, read console logs) via Claude in Chrome. Available when Chrome integration is enabled | Browser tasks |
+| `/dataviz [request]` | Design guidance for charts, graphs, and dashboards: chart form, color by role, palette validation for colorblind safety and contrast | Building a chart or dashboard |
 | `/debug` | Debug failing tests/errors | Debugging sessions |
 | `/design` *(research preview, v2.1.233+)* | Create a multi-artboard design canvas — UI mockups, screen flows, landing pages, posters — refined visually instead of in code. Pro/Max/Team/Enterprise | Designing a screen or page you would rather tweak by hand than in HTML |
+| `/design-sync [hint]` | Convert your repo's React design system and upload it to Claude Design so its designs use your real components. Anthropic API only | Syncing a design system to Claude Design |
+| `/doctor [prompt-audit [path]]` | Setup checkup that diagnoses installation, settings, extension, and `CLAUDE.md` problems and proposes fixes. Alias: `/checkup` | Troubleshooting your setup |
 | `/fewer-permission-prompts` | Scan transcripts and propose a prioritized allowlist | Reduce repeat permission prompts |
 | `/loop` | Run prompts on interval | Recurring tasks |
 | `/run` *(v2.1.145+)* | Launch this project's app to see a change running | Verifying a change in the real app |
 | `/run-skill-generator` *(v2.1.145+)* | Teach `/run`/`/verify` how to handle a specific project | First-time project setup for `/run` |
 | `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [pr#\|branch\|path]` | Review the current diff — or a PR, branch, or path — for correctness bugs. `--fix` applies findings, `--comment` posts them as inline PR comments. With no level given it reuses the last one you typed (v2.1.223). Lower effort levels moved to a **background subagent** in v2.1.218; `high`, `xhigh`, and `max` followed in v2.1.232, so review output no longer fills the conversation | After writing code, before landing a PR |
+| `/slides [brief]` *(v2.1.265+)* | Make a new presentation as a Claude Slides artifact from your brief. Needs artifacts and the Slides template | Creating a slide deck |
 | `/simplify` *(distinct again since v2.1.154)* | Cleanup-only review (reuse / simplification / efficiency / altitude) that applies the fixes; does not hunt bugs | Tidying code without a bug hunt |
+| `/update-config [request]` | Describe a settings change (allow a command, set an env var, add a hook) and Claude edits the matching `settings.json` | Changing settings without hand-editing JSON |
 | `/verify` *(v2.1.145+)* | Build, run, and observe the app to confirm a fix works | Validating a fix end-to-end |
+| `/workflow-authoring` *(v2.1.248+)* | Load the reference for writing dynamic workflow scripts (script API, resume, quality patterns). Available when dynamic workflows are enabled | Writing or editing a workflow script |
 
 ---
 
@@ -313,7 +320,7 @@ Model Context Protocol servers for external tool and API access.
 | **Asana** | Project management | Task tracking | Project | Configure in settings |
 | **Stripe** | Payment data | Financial analysis | Project | Configure in settings |
 | **Memory** | Persistent memory | Cross-session recall | User | Configure in settings |
-| **Context7** | Library documentation | Up-to-date docs lookup | Built-in | Built-in |
+| **Context7** | Library documentation | Up-to-date docs lookup | User | Configure in settings (third-party server) |
 
 > **Scope**: `Project` = team (`.mcp.json`), `User` = personal (`~/.claude.json`), `Built-in` = pre-installed
 
@@ -351,10 +358,10 @@ Event-driven automation that executes shell commands on Claude Code events.
 | Event | Description | When Triggered | Use Cases |
 |-------|-------------|----------------|-----------|
 | `SessionStart` | Session begins/resumes | Session initialization | Setup tasks |
-| `Setup` | Initial environment setup (one-time per session) | First-time session bootstrap | Provision tooling, install deps |
+| `Setup` | Repository setup or maintenance run | Only with `--init-only`, or `--init`/`--maintenance` with `-p` | Provision tooling, install deps |
 | `InstructionsLoaded` | Instructions loaded | CLAUDE.md or rules file loaded | Custom instruction handling |
-| `UserPromptSubmit` | Before prompt processing | User sends message | Input validation |
-| `UserPromptExpansion` | User prompt expanded (@-mentions, slash commands resolved) | After expansion, before submit | Transform or inspect expanded prompt |
+| `UserPromptSubmit` | Before prompt processing (and, since v2.1.299, before a skill or custom command expands) | User sends message | Input validation |
+| `UserPromptExpansion` | A typed slash command (skill, custom command, or MCP prompt) expands into a prompt | After `UserPromptSubmit`, before the expanded prompt reaches Claude | Block direct `/command` use, add per-skill context, log commands |
 | `PreToolUse` | Before tool execution | Before any tool runs | Validation, logging |
 | `PermissionRequest` | Permission dialog shown | Before sensitive actions | Custom approval flows |
 | `PermissionDenied` | User denies a permission prompt | After permission decline | Logging, analytics, policy enforcement |
@@ -468,14 +475,14 @@ cp 02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | **/proactive** | Alias for `/loop` — same recurring-task behavior (v2.1.105) | Use `/proactive` interchangeably with `/loop` |
 | **/recap** | Show a session recap when returning to an existing session (v2.1.108) | Run `/recap` after being away to get context on what was done |
 | **/tui** | Toggle fullscreen TUI (text user interface) mode for flicker-free rendering (v2.1.110) | Use `/tui` in fullscreen terminals or tmux |
-| **/undo** | **No longer documented** — added as an alias for `/rewind` in v2.1.108, but it appears nowhere in the official commands reference | Use `/rewind` (or `Esc Esc`) instead |
+| **/undo** | Alias for `/rewind` (v2.1.108) | Use `/undo`, `/checkpoint`, or `/rewind` interchangeably |
 | **Monitor Tool** | Watch a background command's stdout stream and react to events instead of polling (v2.1.98+) | Use the Monitor tool via [Advanced Features](09-advanced-features/) |
 | **Output Styles** | Change Claude's role, tone, and default response format via the system prompt. Built-ins: Default, Proactive, Explanatory, Learning, Concise | `/config` → Output style, set `outputStyle`, or run `/output-style` (re-added in v2.1.269 after removal in v2.1.91). See [Advanced Features](09-advanced-features/#output-styles) |
 | **Status Line** | Render a custom status line from a command that receives session, model, cost, and context JSON on stdin | `/statusline` or the `statusLine` setting. See [Advanced Features](09-advanced-features/#status-line) |
 | **Community Marketplace** | Third-party plugins that passed Anthropic's automated validation, each pinned to a commit SHA | `/plugin marketplace add anthropics/claude-plugins-community`, then `/plugin install <name>@claude-community` |
 | **/team-onboarding** | Auto-generate a teammate ramp-up guide from the project's Claude Code setup (v2.1.101) | Run `/team-onboarding` in your project |
 | **Remote Control** | Control Claude Code sessions remotely via API. **No longer a research preview** — any machine running `claude remote-control` shows up as a device card in the Claude app's Code tab, so a session can be started on it from a phone | Run `claude remote-control` on the machine, then pick its device card in the Claude app. See [Advanced Features](09-advanced-features/README.md) |
-| **Web Sessions** | Run Claude Code in a browser-based environment | Access via `claude web` or through the Anthropic Console |
+| **Web Sessions** | Run Claude Code in a cloud session | Start one with `claude --cloud "task"` or at claude.ai/code |
 | **Desktop App** | Native desktop application for Claude Code | Use `/desktop` or download from Anthropic website |
 | **Cross-Session Messaging** | Sessions can message each other — including your other machines and cloud sessions — discovered via `ListAgents` (v2.1.224+, macOS/Linux) | See [Advanced Features](09-advanced-features/README.md#cross-session-messaging); control inbound with `crossSessionInbound` |
 | **Self-Hosted Runner** | Run Claude Code web, mobile, and desktop sessions on your own machines or containers (v2.1.224+, Team/Enterprise) | `claude self-hosted-runner setup`; see [CLI](10-cli/README.md) |
@@ -491,7 +498,7 @@ cp 02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | **MCP OAuth** | OAuth authentication for MCP servers | Configure OAuth credentials in MCP server settings for secure access |
 | **MCP Tool Search** | Search and discover MCP tools dynamically | Use tool search to find available MCP tools across connected servers |
 | **Scheduled Tasks** | Set up recurring tasks with `/loop` and cron tools | Use `/loop 5m /command` or CronCreate tool |
-| **Chrome Integration** | Browser automation with headless Chromium | Use `--chrome` flag or `/chrome` command |
+| **Chrome Integration** | Drive your own Chrome/Edge (visible window, your logins) via the Claude in Chrome extension | Use `--chrome` flag or `/chrome` command |
 | **Keyboard Customization** | Customize keybindings including chord support | Use `/keybindings` or edit `~/.claude/keybindings.json` |
 | **Auto Mode** | Fully autonomous operation with background safety classifier checks | `Shift+Tab` to cycle to it, or `--permission-mode auto` |
 | **Channels** | Multi-channel communication (Telegram, Slack, etc.) (Research Preview) | Configure channel plugins; March 2026 |
@@ -512,7 +519,7 @@ cp 02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | **`/design`** | Design canvas — a multi-artboard visual design (UI mockups, screen flows, landing pages, posters) built on artifacts and refined visually rather than in code. Research preview; requires v2.1.233+; Pro/Max/Team/Enterprise | Run `/design` in the CLI or the Desktop app. See [Slash Commands](01-slash-commands/README.md) |
 | **`notify_when_idle`** | Cross-session `SendMessage` input that asks another session on the same machine to send one notice when it next goes idle — opt-in, one-shot, no polling (v2.1.236). Related: `ListAgents` reports the session's own name and lists live teammates, and Windows gained cross-session messaging (v2.1.239) | Pass `notify_when_idle` to `SendMessage`. See [Advanced Features](09-advanced-features/README.md#cross-session-messaging) |
 | **Plugin manifest fields** | `plugin.json` accepts `workflows`, `channels`, `dependencies` (semver), `outputStyles`, `keywords`, `metadata`, `lspServers`, and `experimental.themes` / `experimental.monitors`. CLI gained `claude plugin new`, `remove`/`rm`, `prune`/`autoremove`, and the flags `--with`, `-f`/`--force`, `--available`, `--push`, `--dry-run` | See [Plugins](07-plugins/README.md) |
-| **Restricted Mode** | Removes the built-in tools that run commands or code (Bash, PowerShell, REPL) and WebFetch unless `--tools` names them; ignores user, project, and local settings (managed settings and `--settings` still apply); confines file tools to the working directories; refuses `bypassPermissions`; and refuses to create cloud sessions (v2.1.248+) | `claude --restricted`, or `CLAUDE_CODE_RESTRICTED=1`. See [CLI](10-cli/README.md) |
+| **Restricted Mode** | Removes the built-in tools that run commands or code (such as Bash and PowerShell) and WebFetch unless `--tools` names them individually (not via the `default` preset); ignores user, project, and local settings (managed settings and `--settings` still apply); confines file tools to the working directories; refuses `bypassPermissions`; and refuses to create cloud sessions (v2.1.248+) | `claude --restricted`, or `CLAUDE_CODE_RESTRICTED=1`. See [CLI](10-cli/README.md) |
 | **`/advisor` text form** | `/advisor`, `/advisor <model>`, and `/advisor off` work as text commands in the desktop app, Remote Control, and other headless (`-p` / Agent SDK) sessions, not just as a dialog (v2.1.260+) | Type `/advisor off` in a headless session. See [Slash Commands](01-slash-commands/README.md) |
 
 ---
@@ -573,8 +580,8 @@ chmod +x ~/.claude/hooks/*.sh
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/sub-agents
 - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
@@ -597,4 +604,7 @@ chmod +x ~/.claude/hooks/*.sh
 - https://code.claude.com/docs/en/slash-commands
 - https://code.claude.com/docs/en/fast-mode
 - https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode
+- https://code.claude.com/docs/en/mcp
+- https://code.claude.com/docs/en/chrome
+- https://code.claude.com/docs/en/skills#bundled-skills
 **Compatible Models**: Claude Fable 5.1, Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

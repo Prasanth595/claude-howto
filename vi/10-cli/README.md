@@ -40,7 +40,8 @@ graph TD
 | `claude mcp serve` | Chạy Claude Code như một MCP server | `claude mcp serve` |
 | `claude agents` | Liệt kê tất cả các subagents được cấu hình | `claude agents` |
 | `claude auto-mode defaults` | In các quy tắc mặc định chế độ tự động như JSON | `claude auto-mode defaults` |
-| `claude --remote-control [name]` | Khởi động Remote Control (đây là một flag, không phải subcommand; alias `--rc`) | `claude --rc` |
+| `claude remote-control` | Khởi động một Remote Control server (chế độ server, không có session tương tác cục bộ; phục vụ nhiều session, `--capacity` mặc định 32) | `claude remote-control --name "My Project"` |
+| `claude --remote-control [name]` | Khởi động session tương tác có bật Remote Control (alias `--rc`) | `claude --rc` |
 | `claude plugin` | Quản lý plugins (cài đặt, kích hoạt, vô hiệu hóa) | `claude plugin install my-plugin` |
 | `claude auth login` | Đăng nhập (hỗ trợ `--email`, `--sso`) | `claude auth login --email user@example.com` |
 | `claude auth logout` | Đăng xuất khỏi tài khoản hiện tại | `claude auth logout` |
@@ -776,9 +777,9 @@ claude -p --output-format json "query"
 **Vấn đề:** `claude: command not found`
 
 **Giải pháp:**
-- Cài đặt Claude Code: `npm install -g @anthropic-ai/claude-code`
-- Kiểm tra PATH bao gồm npm global bin directory
-- Thử chạy với full path: `npx claude`
+- Cài đặt Claude Code: `curl -fsSL https://claude.ai/install.sh | bash` (native, khuyến nghị) hoặc `npm install -g @anthropic-ai/claude-code`
+- Kiểm tra PATH bao gồm `~/.local/bin` (cài đặt native) hoặc npm global bin directory
+- Chạy `claude doctor`
 
 ### API Key Issues
 
@@ -834,9 +835,12 @@ claude -p --output-format json "query"
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 10 tháng 10 năm 2026
-**Phiên Bản Claude Code**: 2.1.296
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/cli-reference
 - https://code.claude.com/docs/en/model-config
+- https://code.claude.com/docs/en/remote-control
+- https://code.claude.com/docs/en/setup
+- https://code.claude.com/docs/en/troubleshoot-install#command-not-found-claude-after-installation
 **Các Mô Hình Tương Thích**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

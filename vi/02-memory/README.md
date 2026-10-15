@@ -495,15 +495,15 @@ Tất cả các worktrees và thư mục con trong cùng một git repository ch
 
 ### Bộ Nhớ Subagent
 
-Các subagent (được tạo ra qua các công cụ như Task hoặc thực thi song song) có thể có bối cảnh bộ nhớ riêng của chúng. Sử dụng trường frontmatter `memory` trong định nghĩa subagent để chỉ định các phạm vi bộ nhớ nào để tải:
+Các subagent (được tạo ra qua công cụ Agent) có thể giữ bộ nhớ lâu dài riêng của chúng. Trường frontmatter `memory` trong định nghĩa subagent chọn nơi đặt thư mục bộ nhớ đó:
 
 ```yaml
-memory: user      # Chỉ tải bộ nhớ cấp người dùng
-memory: project   # Chỉ tải bộ nhớ cấp dự án
-memory: local     # Chỉ tải bộ nhớ cục bộ
+memory: user      # ~/.claude/agent-memory/<agent-name>/
+memory: project   # .claude/agent-memory/<agent-name>/ (có thể chia sẻ qua git)
+memory: local     # .claude/agent-memory-local/<agent-name>/ (không commit)
 ```
 
-Điều này cho phép các subagent hoạt động với bối cảnh tập trung thay vì kế thừa toàn bộ hệ phân cấp bộ nhớ.
+Subagent đọc 200 dòng đầu / 25KB đầu của `MEMORY.md` trong thư mục đó khi khởi động và được cấp Read/Write/Edit để duy trì nó. Trường này không có tác dụng khi auto memory bị tắt.
 
 ### Kiểm Soát Auto Memory
 
@@ -1159,11 +1159,12 @@ Claude sẽ nhắc bạn chọn file bộ nhớ nào để cập nhật.
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 10 tháng 10 năm 2026
-**Phiên Bản Claude Code**: 2.1.296
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/memory
 - https://code.claude.com/docs/en/memory#agents-md
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.288
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.293
+- https://code.claude.com/docs/en/sub-agents#enable-persistent-memory
 **Các Mô Hình Tương Thích**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5

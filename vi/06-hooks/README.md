@@ -58,7 +58,7 @@ Hooks được cấu hình trong các file settings với cấu trúc cụ thể
 | `type` | Loại hook: `"command"` (bash), `"prompt"` (LLM), `"http"` (webhook), `"mcp_tool"` (gọi công cụ MCP, từ v2.1.118), hoặc `"agent"` (subagent) | `"command"` |
 | `command` | Lệnh shell để thực thi | `"$CLAUDE_PROJECT_DIR/.claude/hooks/format.sh"` |
 | `timeout` | Timeout tùy chọn tính bằng giây. Mặc định: 600 cho command/http/mcp_tool, 30 cho prompt, 60 cho agent. | `30` |
-| `once` | Nếu `true`, chạy hook chỉ một lần mỗi phiên | `true` |
+| `once` | Nếu `true`, hook bị gỡ bỏ sau lần chạy thành công đầu tiên (lần chạy thất bại/bị chặn/hết thời gian vẫn giữ hook). Chỉ dùng trong frontmatter của skill; bị bỏ qua trong settings và frontmatter của agent | `true` |
 | `async` | Nếu `true`, chạy nền mà không chặn | `true` |
 | `asyncRewake` | Nếu `true`, chạy nền và đánh thức Claude khi mã thoát là 2. Ngầm bật `async`. | `true` |
 | `shell` | Chấp nhận `"bash"` hoặc `"powershell"`. Mặc định `"bash"`, hoặc `"powershell"` trên Windows khi chưa cài Git Bash. | `"bash"` |
@@ -180,38 +180,38 @@ Claude Code hỗ trợ **33 sự kiện hook**:
 | Sự Kiện | Khi Được Kích Hoạt | Matcher Input | Có Chặn | Sử Dụng Phổ Biến |
 |-------|---------------|---------------|-----------|------------|
 | **SessionStart** | Phiên bắt đầu/tiếp tục/xóa/dồn/fork | startup/resume/clear/compact/fork | Không | Thiết lập môi trường |
-| **Setup** | Thiết lập môi trường ban đầu (một lần mỗi phiên) | (none) | Không | Cài đặt công cụ, cài dependencies |
-| **InstructionsLoaded** | Sau khi CLAUDE.md hoặc file rules được tải | (none) | Không | Sửa đổi/bộ lọc hướng dẫn |
+| **Setup** | `--init-only`, hoặc `--init`/`--maintenance` cùng `-p` (chuẩn bị CI/script) | `init`/`maintenance` | Không | Cài đặt công cụ, cài dependencies |
+| **InstructionsLoaded** | Sau khi CLAUDE.md hoặc file rules được tải | Lý do tải (`session_start`/`nested_traversal`/`path_glob_match`/`include`/`compact`) | Không | Ghi log kiểm tra/quan sát |
 | **UserPromptSubmit** | Người dùng gửi prompt | (none) | Có | Xác thực prompts |
-| **UserPromptExpansion** | Prompt được mở rộng (ví dụ: `@` mentions, slash commands được phân giải) | (none) | Có | Biến đổi hoặc kiểm tra prompt đã mở rộng |
+| **UserPromptExpansion** | Slash command do người dùng nhập hoặc MCP prompt được mở rộng thành prompt | Tên lệnh | Có | Biến đổi hoặc kiểm tra prompt đã mở rộng |
 | **MessageDisplay** | Trong khi văn bản phản hồi của assistant được hiển thị | (none) | Không | Biến đổi hoặc ẩn văn bản hiển thị (v2.1.152) |
 | **PreToolUse** | Trước khi thực thi công cụ | Tên công cụ | Có (allow/deny/ask) | Xác thực, sửa đổi đầu vào |
 | **PermissionRequest** | Hộp thoại quyền được hiển thị | Tên công cụ | Có | Tự động phê duyệt/từ chối |
 | **PostToolUse** | Sau khi công cụ thành công | Tên công cụ | Không | Thêm ngữ cảnh, feedback |
 | **PostToolUseFailure** | Thực thi công cụ thất bại | Tên công cụ | Không | Xử lý lỗi, logging |
-| **PostToolBatch** | Sau khi một lô lệnh gọi công cụ hoàn tất | (none) | Không | Báo cáo tổng hợp, xác thực theo lô |
-| **PermissionDenied** | Người dùng từ chối một hộp thoại quyền | Tên công cụ | Không | Logging, phân tích, thực thi chính sách |
+| **PostToolBatch** | Sau khi một lô lệnh gọi công cụ hoàn tất | (none) | Có | Báo cáo tổng hợp, xác thực theo lô |
+| **PermissionDenied** | Auto mode từ chối một lệnh gọi công cụ | Tên công cụ | Không | Logging, phân tích, thực thi chính sách |
 | **Notification** | Thông báo được gửi | Loại thông báo | Không | Thông báo tùy chỉnh |
 | **SubagentStart** | Subagent được spawn | Tên loại agent | Không | Thiết lập subagent |
 | **SubagentStop** | Subagent hoàn thành | Tên loại agent | Có | Xác thực subagent |
 | **Stop** | Claude hoàn thành phản hồi | (none) | Có | Kiểm tra hoàn thành tác vụ |
-| **StopFailure** | Lỗi API kết thúc turn | (none) | Không | Phục hồi lỗi, logging |
+| **StopFailure** | Lỗi API kết thúc turn | Loại lỗi (`rate_limit`, `overloaded`, `server_error`, …) | Không | Phục hồi lỗi, logging |
 | **TeammateIdle** | Đồng nghiệp nhóm agent rảnh | (none) | Có | Phối hợp đồng nghiệp |
 | **TaskCompleted** | Nhiệm vụ được đánh dấu hoàn thành | (none) | Có | Hành động sau tác vụ |
-| **TaskCreated** | Nhiệm vụ được tạo qua TaskCreate | (none) | Không | Theo dõi nhiệm vụ, logging |
-| **ConfigChange** | File config thay đổi | (none) | Có (trừ policy) | Phản hồi cập nhật config |
+| **TaskCreated** | Nhiệm vụ được tạo qua TaskCreate | (none) | Có | Theo dõi nhiệm vụ, logging |
+| **ConfigChange** | File config thay đổi | Nguồn config (`user_settings`/`project_settings`/`local_settings`/`policy_settings`/`skills`) | Có (trừ policy) | Phản hồi cập nhật config |
 | **CwdChanged** | Thư mục làm việc thay đổi | (none) | Không | Thiết lập cụ thể thư mục |
-| **DirectoryAdded** | Thư mục làm việc mới được đăng ký giữa phiên qua `/add-dir` hoặc control request `register_repo_root` của SDK (v2.1.219) | (none) | Không | Thiết lập công cụ cho thư mục vừa thêm |
-| **FileChanged** | File được watch thay đổi | (none) | Không | Giám sát file, rebuild |
-| **PreCompact** | Trước khi dồn ngữ cảnh | manual/auto | Không | Hành động pre-dồn |
+| **DirectoryAdded** | Thư mục làm việc mới được đăng ký giữa phiên qua `/add-dir` hoặc control request `register_repo_root` của SDK (v2.1.219) | `slash_command`/`register_repo_root` | Không | Thiết lập công cụ cho thư mục vừa thêm |
+| **FileChanged** | File được watch thay đổi | Tên file cần watch (ví dụ `.envrc\|.env`) | Không | Giám sát file, rebuild |
+| **PreCompact** | Trước khi dồn ngữ cảnh | manual/auto | Có | Hành động pre-dồn |
 | **PostCompact** | Sau khi dồn hoàn thành | (none) | Không | Hành động post-dồn |
 | **PreModelSwitch** | Trước khi Claude Code áp dụng yêu cầu chuyển đổi model | Tên chuẩn của model sắp chuyển sang (từ `to_model`) | Có | Kiểm soát hoặc từ chối việc đổi model |
 | **PostModelSwitch** | Sau khi model của phiên thay đổi, kể cả những thay đổi do chính Claude Code thực hiện (ví dụ khôi phục model khi tiếp tục phiên) | Tên chuẩn của model đã chuyển sang (từ `to_model`) | Không | Ghi log hoặc phản hồi thay đổi model |
 | **WorktreeCreate** | Worktree đang được tạo | (none) | Có (trả về path) | Khởi tạo worktree |
-| **WorktreeRemove** | Worktree đang được xóa | (none) | Không | Dọn dẹp worktree |
-| **Elicitation** | MCP server yêu cầu đầu vào người dùng | (none) | Có | Xác thực đầu vào |
-| **ElicitationResult** | Người dùng phản hồi elicitation | (none) | Có | Xử lý phản hồi |
-| **SessionEnd** | Phiên kết thúc | (none) | Không | Dọn dẹp, logging cuối |
+| **WorktreeRemove** | Worktree đang được xóa | (none) | Có (exit khác 0 làm việc xóa thất bại) | Dọn dẹp worktree |
+| **Elicitation** | MCP server yêu cầu đầu vào người dùng | Tên MCP server | Có | Xác thực đầu vào |
+| **ElicitationResult** | Người dùng phản hồi elicitation | Tên MCP server | Có | Xử lý phản hồi |
+| **SessionEnd** | Phiên kết thúc | Lý do kết thúc (`clear`/`resume`/`logout`/`prompt_input_exit`/`other`) | Không | Dọn dẹp, logging cuối |
 
 > **`TaskCreated` và `TaskCompleted` cần bật todo tools (v2.1.233).** Hai sự kiện này phát ra từ các todo/task-tracking tools (`TaskCreate`/`Get`/`Update`/`List`, `TodoWrite`), vốn **chỉ khả dụng mặc định trên các model Claude 3.x, Opus 4 đến 4.7, Sonnet 4 đến 4.6 và Haiku 4.5**. Trên các model khác, hook vẫn là cấu hình hợp lệ nhưng đơn giản là không bao giờ chạy — không có output và cũng không có lỗi. Đặt `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` để khôi phục.
 
@@ -238,7 +238,7 @@ Chạy sau khi Claude tạo tham số công cụ và trước khi xử lý. Sử
 }
 ```
 
-**Các matcher phổ biến:** `Task`, `Bash`, `Glob`, `Grep`, `Read`, `Edit`, `Write`, `WebFetch`, `WebSearch`
+**Các matcher phổ biến:** `Agent`, `Bash`, `Glob`, `Grep`, `Read`, `Edit`, `Write`, `WebFetch`, `WebSearch`
 
 **Điều khiển đầu ra:**
 - `permissionDecision`: `"allow"`, `"deny"`, `"ask"`, hoặc `"defer"`
@@ -248,7 +248,7 @@ Chạy sau khi Claude tạo tham số công cụ và trước khi xử lý. Sử
   - `"defer"` thoát êm để công cụ có thể được tiếp tục sau; `permissionDecisionReason`, `updatedInput` và `additionalContext` đều bị bỏ qua với giá trị này
   - Các quy tắc deny và ask vẫn được đánh giá bất kể hook trả về gì. Khi nhiều hook `PreToolUse` bất đồng, thứ tự ưu tiên là `deny` > `defer` > `ask` > `allow`
 - `permissionDecisionReason`: Giải thích cho quyết định. Hiển thị cho người dùng (không phải Claude) với `"allow"` và `"ask"`; hiển thị cho Claude với `"deny"`; bị bỏ qua với `"defer"`
-- `updatedInput`: Các tham số đầu vào công cụ đã sửa đổi
+- `updatedInput`: Đầu vào công cụ thay thế (thay toàn bộ đối tượng đầu vào). Từ v2.1.300, nó được xác thực như đầu vào của chính Claude — các khóa không xác định bị loại bỏ, và đầu vào bị công cụ từ chối sẽ khiến lệnh gọi bị từ chối.
 
 ### PostToolUse
 
@@ -279,7 +279,7 @@ Chạy ngay sau khi công cụ hoàn thành. Sử dụng để xác minh, loggin
 
 ### UserPromptSubmit
 
-Chạy khi người dùng gửi prompt, trước khi Claude xử lý nó.
+Chạy khi người dùng gửi prompt, trước khi Claude xử lý nó. Từ v2.1.299, hook chạy trước khi một skill hoặc lệnh tùy chỉnh được mở rộng, nên chặn prompt cũng sẽ dừng các dòng shell `!` của lệnh đó; `UserPromptExpansion` kích hoạt sau nó.
 
 **Cấu Hình:**
 ```json
@@ -422,11 +422,11 @@ hooks:
       hooks:
         - type: command
           command: "./scripts/check.sh"
-          once: true  # Chỉ chạy một lần mỗi phiên
+          once: true  # Chỉ trong frontmatter của skill: gỡ bỏ sau lần chạy thành công đầu tiên
 ---
 ```
 
-**Các sự kiện được hỗ trợ cho component hooks:** `PreToolUse`, `PostToolUse`, `Stop`
+**Các sự kiện được hỗ trợ:** mọi sự kiện hook. Hooks của subagent chỉ chạy khi subagent đang hoạt động (`Stop` → `SubagentStop`); hooks của skill được đăng ký khi skill được gọi và duy trì đến hết phiên.
 
 Điều này cho phép định nghĩa hooks trực tiếp trong component sử dụng chúng, giữ code liên quan cùng nhau.
 
@@ -706,7 +706,7 @@ BLOCKED_PATTERNS = [
 
 def main():
     input_data = json.load(sys.stdin)
-    prompt = input_data.get("user_prompt", "") or input_data.get("prompt", "")
+    prompt = input_data.get("prompt", "")
 
     for pattern, message in BLOCKED_PATTERNS:
         if re.search(pattern, prompt, re.IGNORECASE):
@@ -880,10 +880,16 @@ Chỉnh sửa `~/.claude/settings.json` hoặc `.claude/settings.json` với c�
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 26 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.283
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/plugins/manifest-reference#quoting-and-path-separators
+- https://code.claude.com/docs/en/hooks#pretooluse
+- https://code.claude.com/docs/en/hooks#pretooluse-decision-control
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
+- https://code.claude.com/docs/en/hooks#userpromptsubmit-input
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/changelog#2-1-300
 **Các Mô Hình Tương Thích**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

@@ -1,8 +1,12 @@
 #!/bin/bash
 # Send notifications on events
-# Hook: PostToolUse (matcher: Bash) — run after bash commands; filter for git push in script logic
+# Hook: PostToolUse (matcher: Bash) — runs after every Bash call; the script exits unless the command is a git push
 # Note: Claude Code has no native PostPush event. To trigger on git push, check the bash command
 # string for "git push" using a matcher or conditional logic within this script.
+
+# Read the hook input and exit unless the Bash command is a git push
+INPUT=$(cat)
+echo "$INPUT" | grep -q '"command"[[:space:]]*:[[:space:]]*"[^"]*git push' || exit 0
 
 REPO_NAME=$(basename $(git rev-parse --show-toplevel 2>/dev/null) 2>/dev/null)
 COMMIT_MSG=$(git log -1 --pretty=%B 2>/dev/null)

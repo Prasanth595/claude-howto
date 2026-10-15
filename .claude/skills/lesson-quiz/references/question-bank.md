@@ -112,7 +112,7 @@
 - **Options**: A) 3 levels deep | B) 4 levels deep | C) 10 levels deep | D) Unlimited
 - **Correct**: B
 - **Explanation**: The `@path` import syntax supports recursive imports up to a maximum depth of 4 hops to prevent infinite loops.
-- **Review**: Memory Architecture section
+- **Review**: The /memory Command section (Import features)
 
 ### Q4
 - **Category**: practical
@@ -143,7 +143,7 @@
 - **Question**: What does the `/init` command do?
 - **Options**: A) Initializes a new Claude Code project from scratch | B) Generates a template CLAUDE.md based on your project structure | C) Resets all memory to defaults | D) Creates a new session
 - **Correct**: B
-- **Explanation**: `/init` analyzes your project and generates a template CLAUDE.md with suggested rules and standards. It's a one-time bootstrapping tool.
+- **Explanation**: `/init` analyzes your project and generates a template CLAUDE.md with suggested rules and standards. Re-running it on an existing CLAUDE.md suggests improvements.
 - **Review**: /init command section
 
 ### Q8
@@ -187,7 +187,7 @@
 - **Question**: What is the most important factor for a skill to be auto-invoked by Claude?
 - **Options**: A) The skill's file name | B) The `description` field in frontmatter with when-to-use keywords | C) The skill's directory location | D) The `auto-invoke: true` frontmatter field
 - **Correct**: B
-- **Explanation**: Claude decides whether to auto-invoke a skill based solely on its `description` field. It must include specific trigger phrases and scenarios.
+- **Explanation**: Claude decides whether to auto-invoke a skill based on its `description` (plus optional `when_to_use`). It must include specific trigger phrases and scenarios.
 - **Review**: Controlling Skill Invocation section
 
 ### Q3
@@ -211,7 +211,7 @@
 - **Question**: What is the approximate context budget allocated to skill metadata (Level 1)?
 - **Options**: A) 0.5% of context window | B) 1% of context window | C) 5% of context window | D) 10% of context window
 - **Correct**: B
-- **Explanation**: Skill metadata occupies about 1% of the context window (fallback: 8,000 characters). This is configurable with `SLASH_COMMAND_TOOL_CHAR_BUDGET`.
+- **Explanation**: Skill metadata occupies about 1% of the context window (fallback: 8,000 characters). This is configurable with `SLASH_COMMAND_TOOL_CHAR_BUDGET` or the `skillListingBudgetFraction` setting.
 - **Review**: the "Description budget" paragraph under Automatic Discovery
 
 ### Q6
@@ -232,10 +232,10 @@
 
 ### Q8
 - **Category**: practical
-- **Question**: What characters are allowed in the `name` field of a skill's frontmatter?
+- **Question**: What characters are allowed in the `name` field of a skill's frontmatter for a skill you plan to share via claude.ai or the Skills API (Agent Skills spec)?
 - **Options**: A) Any characters | B) Lowercase letters, numbers, and hyphens only (max 64 chars) | C) Letters and underscores | D) Alphanumeric only
 - **Correct**: B
-- **Explanation**: The name must be kebab-case (lowercase, hyphens), max 64 characters. `name` is itself optional — if omitted it defaults to the skill's directory name — but when supplied it must follow these rules. In Claude Code, the `anthropic-skills` name and namespace are reserved for skills synced from claude.ai, so a skill with that name doesn't load; the broader ban on "anthropic" or "claude" applies to claude.ai skill uploads and the Skills API.
+- **Explanation**: The name must be kebab-case (lowercase, hyphens), max 64 characters. `name` is itself optional — if omitted it defaults to the skill's directory name — but when supplied it must follow these rules. In Claude Code, the `anthropic-skills` name and namespace are reserved for skills synced from claude.ai, so a skill with that name doesn't load; the broader ban on "anthropic" or "claude" applies to claude.ai skill uploads and the Skills API. Claude Code itself (v2.1.299) refuses only names that contain hidden, direction-changing or blank-like characters, `<` or `>`, or that are over 256 characters.
 - **Review**: SKILL.md format section
 
 ### Q9
@@ -311,7 +311,7 @@
 - **Question**: What does the `memory` field with scope `project` do for a subagent?
 - **Options**: A) Gives read access to the project CLAUDE.md | B) Creates a persistent memory directory scoped to the current project | C) Shares the main agent's conversation history | D) Loads the project's git history
 - **Correct**: B
-- **Explanation**: The `memory` field creates a persistent directory for the subagent. Scope `project` means the memory is tied to the current project. The first 200 lines of the agent's MEMORY.md auto-load.
+- **Explanation**: The `memory` field creates a persistent directory for the subagent. Scope `project` means the memory is tied to the current project. The first 200 lines or 25KB of the agent's MEMORY.md, whichever comes first, auto-load.
 - **Review**: Persistent memory section
 
 ### Q8
@@ -363,7 +363,7 @@
 - **Question**: With `ENABLE_TOOL_SEARCH=auto`, what happens when MCP tool definitions reach 10% of the context window?
 - **Options**: A) They are truncated | B) Tool search kicks in: MCP tools are deferred and discovered on demand | C) Claude shows an error | D) Extra tools are disabled
 - **Correct**: B
-- **Explanation**: By default (`ENABLE_TOOL_SEARCH` unset) tool search is already on and all MCP tools are deferred. `auto` is threshold mode: tools load upfront until their definitions reach 10% of the context window, then all are deferred (`auto:N` sets a custom percentage). Tool search needs a model that supports `tool_reference` blocks: Sonnet 4.5, Haiku 4.5, Opus 4.5 and later.
+- **Explanation**: By default (`ENABLE_TOOL_SEARCH` unset) tool search is already on and all MCP tools are deferred. `auto` is threshold mode: tools load upfront until their definitions reach 10% of the context window, then all are deferred (`auto:N` sets a custom percentage). Tool search needs a model that supports `tool_reference` blocks: Opus 4, Sonnet 4, Haiku 4.5 and later.
 - **Review**: MCP Tool Search section
 
 ### Q4
@@ -371,7 +371,7 @@
 - **Question**: How do you use environment variable fallbacks in MCP config?
 - **Options**: A) `${VAR || "default"}` | B) `${VAR:-default}` | C) `${VAR:default}` | D) `${VAR ? "default"}`
 - **Correct**: B
-- **Explanation**: `${VAR:-default}` provides a fallback value if the environment variable is not set. `${VAR}` without fallback will error if not set.
+- **Explanation**: `${VAR:-default}` provides a fallback value if the environment variable is not set. If `VAR` is unset and has no default, the server still loads with the literal `${VAR}` text, and `claude mcp list` and `/mcp` warn about the missing variable.
 - **Review**: Environment variable expansion section
 
 ### Q5
@@ -403,7 +403,7 @@
 - **Question**: What is the default maximum output size for MCP tools?
 - **Options**: A) 5,000 tokens | B) 10,000 tokens | C) 25,000 tokens | D) 50,000 tokens
 - **Correct**: C
-- **Explanation**: Default max is 25,000 tokens (`MAX_MCP_OUTPUT_TOKENS`). A warning appears at 10k tokens. Disk persistence caps at 50k characters.
+- **Explanation**: Default max is 25,000 tokens (`MAX_MCP_OUTPUT_TOKENS`). A warning appears at 10k tokens. Text results over 50,000 characters are saved to a file.
 - **Review**: MCP Output Limits section
 
 ### Q9
@@ -455,7 +455,7 @@
 - **Question**: How can a PreToolUse hook modify the tool's input parameters before execution?
 - **Options**: A) Return modified JSON on stderr | B) Return JSON with `updatedInput` field on stdout (exit code 0) | C) Write to a temp file | D) Hooks cannot modify inputs
 - **Correct**: B
-- **Explanation**: A PreToolUse hook can output JSON with `"updatedInput": {...}` on stdout (with exit 0) to modify the tool's parameters before Claude uses them.
+- **Explanation**: A PreToolUse hook can output JSON with `"updatedInput": {...}` on stdout (with exit 0) to modify the tool's parameters before Claude uses them. `updatedInput` goes under `hookSpecificOutput` and replaces the whole input object; since v2.1.300 it is validated like Claude's own input, so unknown keys are dropped and input the tool rejects denies the call.
 - **Review**: PreToolUse section
 
 ### Q5
@@ -469,7 +469,7 @@
 ### Q6
 - **Category**: practical
 - **Question**: You want a hook that only runs once when a skill is first loaded, not on every tool call. What field do you add?
-- **Options**: A) `run-once: true` | B) `once: true` in the component hook definition | C) `single: true` | D) `max-runs: 1`
+- **Options**: A) `run-once: true` | B) `once: true` on a hook in the skill's frontmatter | C) `single: true` | D) `max-runs: 1`
 - **Correct**: B
 - **Explanation**: Hooks declared in a skill's frontmatter support `once: true` — Claude Code removes the hook after its first successful run (a run that fails, blocks, or times out leaves it in place). `once` is honored only in skill frontmatter.
 - **Review**: Component-scoped hooks section
@@ -503,7 +503,7 @@
 - **Question**: You want to debug why a hook isn't firing. What's the best approach?
 - **Options**: A) Add print statements to the hook script | B) Use `--debug` flag and `Ctrl+O` for verbose mode | C) Check the system log | D) Hooks don't have debugging tools
 - **Correct**: B
-- **Explanation**: The `--debug` flag and `Ctrl+O` verbose mode show hook execution details including which hooks fire, their inputs, and outputs.
+- **Explanation**: `claude --debug` (or `--debug-file <path>`, or `/debug` mid-session) logs hook runs to the debug log, including which hooks fire, their inputs, and outputs; `Ctrl+O` opens the transcript view to see hook outcomes.
 - **Review**: Debugging section
 
 ---
@@ -515,7 +515,7 @@
 - **Question**: What is the core manifest file for a plugin and where does it live?
 - **Options**: A) `plugin.yaml` in the root directory | B) `.claude-plugin/plugin.json` | C) `package.json` with a "claude" key | D) `.claude/plugin.md`
 - **Correct**: B
-- **Explanation**: The plugin manifest lives at `.claude-plugin/plugin.json`. Only `name` (kebab-case identifier) is required; `description`, `version`, `author`, `homepage`, `repository` and `license` are optional metadata.
+- **Explanation**: The plugin manifest lives at `.claude-plugin/plugin.json`. The manifest is optional; when present, `name` (kebab-case identifier) is its only required key; `description`, `version`, `author`, `homepage`, `repository` and `license` are optional metadata.
 - **Review**: Plugin definition structure section
 
 ### Q2
@@ -631,7 +631,7 @@
 - **Question**: How long are checkpoints retained?
 - **Options**: A) Until session ends | B) 7 days | C) 30 days | D) Indefinitely
 - **Correct**: C
-- **Explanation**: Checkpoints persist across sessions for up to 30 days, after which they are automatically cleaned up. Retention is also capped by count: only the 100 most recent checkpoints per session are kept, so older ones are dropped even inside the 30-day window. The window is governed by `cleanupPeriodDays`.
+- **Explanation**: Checkpoints are saved with the session, so `/rewind` works after you resume it; snapshots are deleted about 30 days after the session last saved one (`cleanupPeriodDays`); only the 100 most recent checkpoints keep file snapshots. The window is governed by `cleanupPeriodDays`.
 - **Review**: Checkpoint Retention section
 
 ### Q6
@@ -844,8 +844,8 @@
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/skills
@@ -861,3 +861,8 @@
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/plugins/cli-reference
 - https://code.claude.com/docs/en/plugins
+- https://code.claude.com/docs/en/hooks#pretooluse-decision-control
+- https://code.claude.com/docs/en/mcp#environment-variable-expansion-in-mcp-json
+- https://code.claude.com/docs/en/mcp#configure-tool-search
+- https://code.claude.com/docs/en/skills#frontmatter-reference
+- https://code.claude.com/docs/en/checkpointing#automatic-tracking

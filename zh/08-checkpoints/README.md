@@ -35,7 +35,7 @@ Checkpoints 会保存会话状态，让你可以安全地试验和探索多种�
 
 ### 使用 Slash Command
 
-使用 `/rewind` 命令（别名：`/checkpoint`）快速进入：
+使用 `/rewind` 命令（别名：`/checkpoint`、`/undo`）快速进入：
 
 ```bash
 # 打开 rewind 界面
@@ -60,7 +60,7 @@ Checkpoints 会保存会话状态，让你可以安全地试验和探索多种�
 Claude Code 会自动为你创建 checkpoints：
 
 - **每次用户提示** - 每次用户输入都会创建一个新 checkpoint
-- **持久保存** - checkpoints 会跨会话保留
+- **持久保存** - checkpoints 随对话一起保存，因此恢复会话后仍可使用 `/rewind`
 - **自动清理** - 30 天后自动清理旧 checkpoints
 
 这意味着你随时都可以回到之前的任意节点，从几分钟前到几天前都可以。
@@ -263,7 +263,7 @@ Checkpoints 和 git 是互补关系：
 
 - `Esc` + `Esc`：打开 checkpoint 浏览器
 - `/rewind`：通过命令进入回退界面
-- `/checkpoint`：`/rewind` 的别名
+- `/checkpoint`、`/undo`：`/rewind` 的别名
 
 ## 什么时候该 rewind：上下文监控
 
@@ -290,3 +290,11 @@ Checkpoints 和 git 是互补关系：
 ## 总结
 
 Checkpoints 的价值在于让你敢于试错。它让“先试再说”和“试错后立刻回退”变得安全，从而帮你更快找到正确方案。
+
+---
+
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
+**来源**:
+- https://code.claude.com/docs/en/checkpointing
+- https://code.claude.com/docs/en/commands

@@ -58,7 +58,7 @@ Hooks are configured in settings files with a specific structure:
 | `type` | Hook type: `"command"` (bash), `"prompt"` (LLM), `"http"` (webhook), `"mcp_tool"` (MCP tool invocation, v2.1.118+), or `"agent"` (subagent) | `"command"` |
 | `command` | Shell command to execute | `"$CLAUDE_PROJECT_DIR/.claude/hooks/format.sh"` |
 | `timeout` | Optional timeout in seconds. Defaults: 600 for command/http/mcp_tool, 30 for prompt, 60 for agent. | `30` |
-| `once` | If `true`, run the hook only once per session | `true` |
+| `once` | If `true`, the hook is removed after its first successful run (failed/blocked/timed-out runs keep it). Skill frontmatter only; ignored in settings and agent frontmatter | `true` |
 | `async` | If `true`, runs in the background without blocking | `true` |
 | `asyncRewake` | If `true`, runs in the background and wakes Claude on exit code 2. Implies `async`. | `true` |
 | `shell` | Accepts `"bash"` or `"powershell"`. Defaults to `"bash"`, or to `"powershell"` on Windows when Git Bash isn't installed. | `"bash"` |
@@ -251,38 +251,38 @@ Claude Code supports **33 hook events**:
 | Event | When Triggered | Matcher Input | Can Block | Common Use |
 |-------|---------------|---------------|-----------|------------|
 | **SessionStart** | Session begins/resumes/clear/compact | startup/resume/clear/compact/fork | No | Environment setup |
-| **Setup** | Initial environment setup (one-time per session) | (none) | No | Provision tooling, install deps |
-| **InstructionsLoaded** | After CLAUDE.md or rules file loaded | (none) | No | Modify/filter instructions |
+| **Setup** | `--init-only`, or `--init`/`--maintenance` with `-p` (CI/script prep) | `init`/`maintenance` | No | Provision tooling, install deps |
+| **InstructionsLoaded** | After CLAUDE.md or rules file loaded | Load reason (`session_start`/`nested_traversal`/`path_glob_match`/`include`/`compact`) | No | Audit/observability logging |
 | **UserPromptSubmit** | User submits prompt | (none) | Yes | Validate prompts |
-| **UserPromptExpansion** | User prompt is expanded (e.g., `@` mentions, slash commands resolved) | (none) | Yes | Transform or inspect expanded prompt |
+| **UserPromptExpansion** | User-typed slash command or MCP prompt expands into a prompt | Command name | Yes | Transform or inspect expanded prompt |
 | **PreToolUse** | Before tool execution | Tool name | Yes (allow/deny/ask/defer) | Validate, modify inputs |
 | **PermissionRequest** | Permission dialog shown | Tool name | Yes | Auto-approve/deny |
-| **PermissionDenied** | User denies a permission prompt | Tool name | No | Logging, analytics, policy enforcement |
+| **PermissionDenied** | Auto mode denies a tool call | Tool name | No | Logging, analytics, policy enforcement |
 | **PostToolUse** | After tool succeeds | Tool name | No | Add context, feedback |
 | **PostToolUseFailure** | Tool execution fails | Tool name | No | Error handling, logging |
-| **PostToolBatch** | After a batch of tool uses completes | (none) | No | Aggregate reporting, batched validation |
+| **PostToolBatch** | After a batch of tool uses completes | (none) | Yes | Aggregate reporting, batched validation |
 | **Notification** | Notification sent | Notification type | No | Custom notifications |
 | **MessageDisplay** | While assistant message text is displayed | (none) | No | Transform or hide displayed message text (v2.1.152) |
 | **SubagentStart** | Subagent spawned | Agent type name | No | Subagent setup |
 | **SubagentStop** | Subagent finishes | Agent type name | Yes | Subagent validation |
 | **Stop** | Claude finishes responding | (none) | Yes | Task completion check |
-| **StopFailure** | API error ends turn | (none) | No | Error recovery, logging |
+| **StopFailure** | API error ends turn | Error type (`rate_limit`, `overloaded`, `server_error`, …) | No | Error recovery, logging |
 | **TeammateIdle** | Agent team teammate idle | (none) | Yes | Teammate coordination |
 | **TaskCompleted** | Task marked complete | (none) | Yes | Post-task actions |
-| **TaskCreated** | Task created via TaskCreate | (none) | No | Task tracking, logging |
-| **ConfigChange** | Config file changes | (none) | Yes (except policy) | React to config updates |
+| **TaskCreated** | Task created via TaskCreate | (none) | Yes | Task tracking, logging |
+| **ConfigChange** | Config file changes | Config source (`user_settings`/`project_settings`/`local_settings`/`policy_settings`/`skills`) | Yes (except policy) | React to config updates |
 | **CwdChanged** | Working directory changes | (none) | No | Directory-specific setup |
-| **DirectoryAdded** | New working directory registered mid-session via `/add-dir` or the SDK `register_repo_root` control request (v2.1.219) | (none) | No | Set up tooling for a newly added directory |
-| **FileChanged** | Watched file changes | (none) | No | File monitoring, rebuild |
-| **PreCompact** | Before context compaction | manual/auto | No | Pre-compact actions |
+| **DirectoryAdded** | New working directory registered mid-session via `/add-dir` or the SDK `register_repo_root` control request (v2.1.219) | `slash_command`/`register_repo_root` | No | Set up tooling for a newly added directory |
+| **FileChanged** | Watched file changes | Filenames to watch (e.g. `.envrc\|.env`) | No | File monitoring, rebuild |
+| **PreCompact** | Before context compaction | manual/auto | Yes | Pre-compact actions |
 | **PostCompact** | After compaction completes | (none) | No | Post-compact actions |
 | **PreModelSwitch** | Before Claude Code applies a requested model switch | Canonical name of the model being switched to (from `to_model`) | Yes | Gate or veto model changes |
 | **PostModelSwitch** | After the session's model changes, including changes Claude Code makes itself (such as restoring the model on resume) | Canonical name of the model switched to (from `to_model`) | No | Log or react to model changes |
 | **WorktreeCreate** | Worktree being created | (none) | Yes (path return) | Worktree initialization |
-| **WorktreeRemove** | Worktree being removed | (none) | No | Worktree cleanup |
-| **Elicitation** | MCP server requests user input | (none) | Yes | Input validation |
-| **ElicitationResult** | User responds to elicitation | (none) | Yes | Response processing |
-| **SessionEnd** | Session terminates | (none) | No | Cleanup, final logging |
+| **WorktreeRemove** | Worktree being removed | (none) | Yes (non-zero exit fails removal) | Worktree cleanup |
+| **Elicitation** | MCP server requests user input | MCP server name | Yes | Input validation |
+| **ElicitationResult** | User responds to elicitation | MCP server name | Yes | Response processing |
+| **SessionEnd** | Session terminates | End reason (`clear`/`resume`/`logout`/`prompt_input_exit`/`other`) | No | Cleanup, final logging |
 
 `PreModelSwitch` and `PostModelSwitch` require v2.1.251 or later. Both receive `from_model` and `to_model`; the matcher is evaluated against the canonical name derived from `to_model` (e.g. `claude-opus-5`, `.*opus.*`). Their `command`, `http`, and `mcp_tool` timeout default is lowered to 30 seconds.
 
@@ -318,7 +318,7 @@ Runs after Claude creates tool parameters and before processing. Use this to val
 }
 ```
 
-**Common matchers:** `Task`, `Bash`, `Glob`, `Grep`, `Read`, `Edit`, `Write`, `WebFetch`, `WebSearch`
+**Common matchers:** `Agent`, `Bash`, `Glob`, `Grep`, `Read`, `Edit`, `Write`, `WebFetch`, `WebSearch`
 
 **Output control:**
 - `permissionDecision`: `"allow"`, `"deny"`, `"ask"`, or `"defer"`
@@ -328,7 +328,7 @@ Runs after Claude creates tool parameters and before processing. Use this to val
   - `"defer"` exits gracefully so the tool can be resumed later; `permissionDecisionReason`, `updatedInput` and `additionalContext` are all ignored for this value
   - Deny and ask rules are still evaluated regardless of what the hook returns. When multiple `PreToolUse` hooks disagree, precedence is `deny` > `defer` > `ask` > `allow`
 - `permissionDecisionReason`: Explanation for decision. Shown to the user (not Claude) for `"allow"` and `"ask"`; shown to Claude for `"deny"`; ignored for `"defer"`
-- `updatedInput`: Modified tool input parameters
+- `updatedInput`: Replacement tool input (replaces the whole input object). Since v2.1.300 it is validated like Claude's own input — unknown keys are dropped, and input the tool rejects denies the call.
 
 ### PostToolUse
 
@@ -390,7 +390,7 @@ Use this when the hook's `reason` is something Claude can act on (e.g., "this fi
 
 ### UserPromptSubmit
 
-Runs when user submits a prompt, before Claude processes it.
+Runs when user submits a prompt, before Claude processes it. Since v2.1.299 it runs before a skill or custom command expands, so blocking the prompt also stops that command's `!` shell lines; `UserPromptExpansion` fires after it.
 
 **Configuration:**
 ```json
@@ -513,6 +513,7 @@ Runs when session ends to perform cleanup or final logging. Cannot block termina
 
 **Reason field values:**
 - `clear` - User cleared the session
+- `resume` - Session switched via interactive `/resume`
 - `logout` - User logged out
 - `prompt_input_exit` - User exited via prompt input
 - `other` - Other reason
@@ -541,9 +542,13 @@ Updated matchers for notification events:
 - `permission_prompt` - Permission request notification
 - `idle_prompt` - Idle state notification
 - `auth_success` - Authentication success
-- `elicitation_dialog` - Dialog shown to user
+- `elicitation_dialog` - MCP server opened an elicitation form
+- `elicitation_url_dialog` - MCP server asks you to open a browser URL
+- `elicitation_complete` - URL-mode elicitation reported complete
+- `elicitation_response` - Elicitation response sent back to the server
 - `agent_needs_input` - Background agent needs input (v2.1.198)
 - `agent_completed` - Background agent finished (v2.1.198)
+- `quota_auto_resume_fired` / `quota_auto_resume_stale` / `quota_auto_resume_disabled` - Usage-limit auto-resume outcomes (v2.1.234)
 
 ### PreModelSwitch
 
@@ -647,11 +652,11 @@ hooks:
       hooks:
         - type: command
           command: "./scripts/check.sh"
-          once: true  # Only run once per session
+          once: true  # Skill frontmatter only: removed after first successful run
 ---
 ```
 
-**Supported events for component hooks:** `PreToolUse`, `PostToolUse`, `Stop`
+**Supported events:** all hook events. Subagent hooks run only while the subagent is active (`Stop` → `SubagentStop`); skill hooks register when the skill is invoked and stay active for the rest of the session.
 
 This allows defining hooks directly in the component that uses them, keeping related code together.
 
@@ -989,7 +994,7 @@ BLOCKED_PATTERNS = [
 
 def main():
     input_data = json.load(sys.stdin)
-    prompt = input_data.get("user_prompt", "") or input_data.get("prompt", "")
+    prompt = input_data.get("prompt", "")
 
     for pattern, message in BLOCKED_PATTERNS:
         if re.search(pattern, prompt, re.IGNORECASE):
@@ -1050,7 +1055,7 @@ import sys
 import tempfile
 
 # Configuration
-CONTEXT_LIMIT = 128000  # Claude's context window (adjust for your model)
+CONTEXT_LIMIT = 1000000  # 1M on Opus 5, Sonnet 5, Opus 4.8, Sonnet 4.6; 200000 on Haiku 4.5 (adjust for your model)
 USE_TIKTOKEN = False    # Set True if tiktoken is installed for better accuracy
 
 
@@ -1204,7 +1209,7 @@ if __name__ == "__main__":
 | Character estimation | ~80-90% | None | <1ms |
 | tiktoken (p50k_base) | ~90-95% | `pip install tiktoken` | <10ms |
 
-> **Note:** Anthropic hasn't released an official offline tokenizer. Both methods are approximations. The transcript includes user prompts, Claude's responses, and tool outputs, but NOT system prompts or internal context.
+> **Note:** Anthropic hasn't released an official offline tokenizer. Both methods are approximations. The transcript includes user prompts, Claude's responses, and tool outputs; since v2.1.300 it also records each API request's system prompt, tools, and parameters.
 
 ### Example 7: Seed Auto-Mode Permissions (One-Time Setup Script)
 
@@ -1630,8 +1635,8 @@ Edit `~/.claude/settings.json` or `.claude/settings.json` with the hook configur
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/hooks
 - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
@@ -1640,4 +1645,10 @@ Edit `~/.claude/settings.json` or `.claude/settings.json` with the hook configur
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/plugins/manifest-reference#quoting-and-path-separators
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.295
+- https://code.claude.com/docs/en/hooks#pretooluse
+- https://code.claude.com/docs/en/hooks#pretooluse-decision-control
+- https://code.claude.com/docs/en/hooks#hook-lifecycle
+- https://code.claude.com/docs/en/hooks#userpromptsubmit-input
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/changelog#2-1-300
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

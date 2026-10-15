@@ -129,14 +129,14 @@ to solving problems.
 |-------|----------|-------------|
 | `name` | Yes | Unique identifier (lowercase letters and hyphens). Lookup is normalized (case- and separator-insensitive — see below), but a name containing `:` is **rejected** as of v2.1.218: `:` is reserved for plugin namespacing |
 | `description` | Yes | Natural language description of purpose. Include "use PROACTIVELY" to encourage automatic invocation |
-| `tools` | No | Comma-separated list of specific tools. Omit to inherit all tools. Supports `Agent(agent_name)` syntax to restrict spawnable subagents |
+| `tools` | No | Comma-separated list of specific tools. Omit to inherit all tools. Supports `Agent(agent_name)` syntax to restrict spawnable subagents. MCP: `mcp__<server>__*` grants a whole server (v2.1.299+: matches only that exact server name). |
 | `disallowedTools` | No | Comma-separated list of tools the subagent must not use |
 | `model` | No | Model to use: `sonnet`, `opus`, `haiku`, full model ID, or `inherit`. Defaults to configured subagent model |
-| `permissionMode` | No | `manual` (renamed from `default` in v2.1.200 — `default` is still accepted as the older name), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto`. As of v2.1.212, the Task tool's `mode` invocation parameter is deprecated and ignored — subagents inherit the parent session's permission mode by default unless overridden here |
+| `permissionMode` | No | `default` (Manual mode; `manual` accepted as an alias since v2.1.200), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto`. As of v2.1.212, the Task tool's `mode` invocation parameter is deprecated and ignored — subagents inherit the parent session's permission mode by default unless overridden here. When the parent runs in `bypassPermissions`, `acceptEdits` or `auto`, the subagent's `permissionMode` is ignored |
 | `maxTurns` | No | Maximum number of agentic turns the subagent can take |
 | `skills` | No | Comma-separated list of skills to preload. Injects full skill content into the subagent's context at startup. **v2.1.133+:** subagents also discover project, user, and plugin skills via the Skill tool — same catalog as the main session, no longer limited to their own embedded set. At most 32 skills are preloaded, each once; a subagent with the Skill tool can still invoke the rest (v2.1.295). |
 | `mcpServers` | No | MCP servers to make available to the subagent |
-| `hooks` | No | Component-scoped hooks (PreToolUse, PostToolUse, Stop) |
+| `hooks` | No | Hooks that run only while this subagent is active. All hook events are supported; most common are `PreToolUse`, `PostToolUse`, `Stop` (runs as `SubagentStop`) |
 | `memory` | No | Persistent memory directory scope: `user`, `project`, or `local` |
 | `background` | No | Subagents already run in the background by default (v2.1.198). Set to `true` to *force* background always and prevent inline execution |
 | `effort` | No | Reasoning effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Overrides the session effort level; available levels depend on the model. Claude can also pass an `effort` value when it calls the Agent tool (v2.1.292). |
@@ -439,11 +439,7 @@ claude --agent code-reviewer
 
 ### Listing Available Agents
 
-Use the `claude agents` command to list all configured agents from all sources:
-
-```bash
-claude agents
-```
+To see which subagents are configured, ask Claude or browse `.claude/agents/` and `~/.claude/agents/`. (`claude agents` is unrelated: it opens agent view for background sessions — see [CLI](../10-cli/README.md#agent-view-claude-agents-v21139).)
 
 ---
 
@@ -666,16 +662,14 @@ In this example, the `coordinator` subagent can only spawn the `worker` and `res
 
 ## `claude agents` CLI Command
 
-The `claude agents` command lists all configured agents grouped by source (built-in, user-level, project-level):
+`claude agents` opens **agent view** (v2.1.139+): a full-screen list of your background sessions grouped by state. It does not list configured subagent definitions; use `claude agents --json` to script against session state.
 
 ```bash
 claude agents
+claude agents --json
 ```
 
-This command:
-- Shows all available agents from all sources
-- Groups agents by their source location
-- Indicates **overrides** when an agent at a higher priority level shadows one at a lower level (e.g., a project-level agent with the same name as a user-level agent)
+Configured subagents live in `.claude/agents/` (project) and `~/.claude/agents/` (user).
 
 ---
 
@@ -1333,8 +1327,8 @@ See the OpenTelemetry section in [Advanced Features → Telemetry](../09-advance
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/sub-agents
 - https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
@@ -1350,4 +1344,8 @@ See the OpenTelemetry section in [Advanced Features → Telemetry](../09-advance
 - https://code.claude.com/docs/en/model-config
 - https://code.claude.com/docs/en/interactive-mode
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.296
+- https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/agent-view
+- https://code.claude.com/docs/en/sub-agents#permission-modes
+- https://code.claude.com/docs/en/sub-agents#available-tools
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

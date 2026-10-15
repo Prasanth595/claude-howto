@@ -263,8 +263,8 @@ sequenceDiagram
 |---------------|------|---------|---------|
 | `name` | String | Ідентифікатор агента | `code-reviewer` |
 | `description` | String | Призначення та ключові слова | `Comprehensive code quality analysis` |
-| `tools` | List/String | Дозволені можливості | `read, grep, diff, lint_runner` |
-| `system_prompt` | Markdown | Поведінкові інструкції | Користувацькі настанови |
+| `tools` | List/String | Дозволені інструменти | `Read, Grep, Glob, Bash` |
+| *(тіло markdown)* | Markdown | Системний промпт / поведінкові інструкції | Користувацькі настанови |
 
 ### Ієрархія доступу до інструментів
 
@@ -289,7 +289,7 @@ graph TD
 ---
 name: code-reviewer
 description: Comprehensive code quality and maintainability analysis
-tools: read, grep, diff, lint_runner
+tools: Read, Grep, Glob, Bash
 ---
 
 # Code Reviewer Agent
@@ -2816,7 +2816,7 @@ Claude Code підтримує **33 події хуків** у п'яти тип�
 | **Setup** | Початкове налаштування середовища (один раз на сесію) | Підготовка інструментів, встановлення залежностей |
 | **InstructionsLoaded** | Завантажено CLAUDE.md або файл правил | Валідація, трансформація, доповнення |
 | **UserPromptSubmit** | Користувач надсилає промпт | Валідація вводу, фільтрація промптів |
-| **UserPromptExpansion** | Промпт розгорнуто (@-згадки, слеш-команди) | Перетворення чи перевірка розгорнутого промпту |
+| **UserPromptExpansion** | Введена слеш-команда (навичка, користувацька команда, MCP-промпт) розгортається в промпт; може заблокувати розгортання | Блокування чи логування прямого використання `/command`, додавання контексту для навички |
 | **PreToolUse** | Перед запуском будь-якого інструменту | Валідація, шлюзи затвердження, логування |
 | **PermissionRequest** | Показано діалог дозволу | Авто-затвердження/відхилення |
 | **PermissionDenied** | Користувач відхилив запит дозволу | Логування, аналітика, політики |
@@ -2859,7 +2859,7 @@ Claude Code підтримує **33 події хуків** у п'яти тип�
         "hooks": [
           {
             "type": "command",
-            "command": "prettier --write $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write"
           }
         ]
       }
@@ -2870,7 +2870,7 @@ Claude Code підтримує **33 події хуків** у п'яти тип�
         "hooks": [
           {
             "type": "command",
-            "command": "eslint $CLAUDE_FILE_PATH"
+            "command": "jq -r '.tool_input.file_path' | xargs npx eslint"
           }
         ]
       }
@@ -2881,9 +2881,8 @@ Claude Code підтримує **33 події хуків** у п'яти тип�
 
 ### Змінні середовища хуків
 
-- `$CLAUDE_FILE_PATH` — Шлях до файлу, що редагується/записується
-- `$CLAUDE_TOOL_NAME` — Назва інструменту, що використовується
-- `$CLAUDE_SESSION_ID` — Ідентифікатор поточної сесії
+- Вхідні дані хука надходять як JSON через stdin (`session_id`, `tool_name`, `tool_input.file_path`, …) — читайте їх за допомогою `jq`
+- `$CLAUDE_CODE_SESSION_ID` — Ідентифікатор поточної сесії
 - `$CLAUDE_PROJECT_DIR` — Шлях до каталогу проєкту
 
 ### Найкращі практики
@@ -3004,10 +3003,7 @@ User: Run tests in background
 
 Claude: Started task bg-1234
 
-/task list           # Show all tasks
-/task status bg-1234 # Check progress
-/task show bg-1234   # View output
-/task cancel bg-1234 # Cancel task
+/tasks               # View and manage background work (alias: /bashes)
 ```
 
 ### Режими дозволів
@@ -3020,7 +3016,7 @@ Claude: Started task bg-1234
 | **acceptEdits** | Автоматично приймати редагування файлів без підтвердження | Довірені робочі процеси редагування |
 | **plan** | Лише аналіз і планування, без модифікації файлів | Код-рев'ю, планування архітектури |
 | **auto** | Автоматично затверджувати безпечні дії, запитувати лише ризиковані | Збалансована автономія з безпекою |
-| **dontAsk** | Виконувати всі дії без запитів підтвердження | Досвідчені користувачі, автоматизація |
+| **dontAsk** | Автоматично відхиляє все, що потребує запиту; виконуються лише попередньо схвалені інструменти та читання | Закриті CI та скрипти |
 | **bypassPermissions** | Повний необмежений доступ, без перевірок безпеки | CI/CD-конвеєри, довірені скрипти |
 
 **Використання:**
@@ -3028,7 +3024,7 @@ Claude: Started task bg-1234
 claude --permission-mode plan          # Read-only analysis
 claude --permission-mode acceptEdits   # Auto-accept edits
 claude --permission-mode auto          # Auto-approve safe actions
-claude --permission-mode dontAsk       # No confirmation prompts
+claude --permission-mode dontAsk       # Pre-approved tools only; deny the rest
 ```
 
 ### Headless-режим (режим друку)
@@ -3137,9 +3133,12 @@ User: \
 *Тепер включає: хуки, контрольні точки, режим планування, розширене мислення, фонові завдання, режими дозволів (6 режимів), headless-режим, управління сесіями, авто-пам'ять, команди агентів, заплановані завдання, інтеграцію з Chrome, канали, голосовий ввід та комплектні навички*
 
 ---
-**Останнє оновлення**: 26 вересня 2026
-**Версія Claude Code**: 2.1.283
+**Останнє оновлення**: 15 жовтня 2026
+**Версія Claude Code**: 2.1.300
 **Джерела**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/hooks
 - https://code.claude.com/docs/en/sub-agents
+- https://code.claude.com/docs/en/commands
+- https://code.claude.com/docs/en/permission-modes
+- https://code.claude.com/docs/en/hooks#userpromptexpansion

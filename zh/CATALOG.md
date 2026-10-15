@@ -19,10 +19,10 @@
 | **Subagents** | 6 | 8 | 14 | [04-subagents/README.md](04-subagents/README.md) |
 | **Skills** | 10 个内置 | 6 | 16 | [03-skills/README.md](03-skills/README.md) |
 | **Plugins** | - | 3 | 3 | [07-plugins/README.md](07-plugins/README.md) |
-| **MCP Servers** | 1 | 0 | 1 | [05-mcp/README.md](05-mcp/README.md) |
+| **MCP Servers** | - | 0 | 0 | [05-mcp/README.md](05-mcp/README.md) |
 | **Hooks** | 33 个事件 | 0 | 33 | [06-hooks/README.md](06-hooks/README.md) |
 | **Memory** | 7 种类型 | 3 | 10 | [02-memory/README.md](02-memory/README.md) |
-| **总计** | **117** | **28** | **145** | |
+| **总计** | **116** | **28** | **144** | |
 
 ---
 
@@ -54,7 +54,7 @@
 | `/plugin` | 管理 plugins | 安装/移除扩展 |
 | `/plan` | 进入规划模式 | 复杂实现 |
 | `/rewind` | 回退到 checkpoint | 撤销变更、探索替代方案 |
-| `/checkpoint` | 管理 checkpoints | 保存/恢复状态 |
+| `/checkpoint` | `/rewind` 的别名 | 与 `/rewind` 相同 |
 | `/cost` | 显示 token 消耗 | 监控开销 |
 | `/context` | 显示上下文窗口使用情况 | 管理对话长度 |
 | `/export` | 导出对话 | 保存以供参考 |
@@ -68,10 +68,8 @@
 | `/release-notes` | 显示更新说明 | 查看新功能 |
 | `/remote-control` | 启用远程控制 | 远程访问 |
 | `/permissions` | 管理权限 | 控制访问 |
-| `/session` | 管理会话 | 多会话工作流 |
 | `/rename` | 重命名当前会话 | 组织会话 |
 | `/resume` | 恢复之前的会话 | 继续工作 |
-| `/todo` | 查看/管理待办列表 | 跟踪任务 |
 | `/tasks` | 查看后台任务 | 监控异步操作 |
 | `/copy` | 复制最后一次回复到剪贴板 | 快速分享输出 |
 | `/teleport` | 将会话转移到另一台机器 | 远程继续工作 |
@@ -119,7 +117,7 @@ Claude Code 提供 6 种权限模式，用来控制工具调用如何被授权�
 |------|-------------|-------------|
 | `default` | 每次工具调用都询问 | 标准交互式使用 |
 | `acceptEdits` | 自动接受文件编辑，其他情况仍询问 | 可信编辑工作流 |
-| `plan` | 只允许只读工具，不允许写入 | 规划与探索 |
+| `plan` | 调研并提出计划；在你批准前不修改源代码 | 规划与探索 |
 | `auto` | 所有操作，附带后台安全分类器检查 | 长任务、减少权限提示 |
 | `bypassPermissions` | 跳过所有权限检查 | CI/CD、无头环境 |
 | `dontAsk` | 跳过需要权限的工具 | 非交互脚本 |
@@ -151,10 +149,10 @@ Claude Code 提供 6 种权限模式，用来控制工具调用如何被授权�
 |-------|------|-------------|
 | `name` | string | agent 标识 |
 | `description` | string | 这个 agent 的用途 |
-| `model` | string | 模型覆盖值（例如 `haiku-4.5`） |
+| `model` | string | 模型覆盖值（`sonnet`、`opus`、`haiku`、`fable`、完整模型 ID 或 `inherit`） |
 | `tools` | array | 允许使用的工具列表 |
-| `effort` | string | 推理强度等级（`low`、`medium`、`high`） |
-| `initialPrompt` | string | agent 启动时注入的 system prompt |
+| `effort` | string | 努力等级（`low`、`medium`、`high`、`xhigh`、`max`；取决于模型） |
+| `initialPrompt` | string | agent 作为主会话 agent 运行时（`--agent`）自动提交的第一条用户消息 |
 | `disallowedTools` | array | 明确禁止该 agent 使用的工具 |
 
 ### 自定义 Subagents（示例）
@@ -215,9 +213,9 @@ Skills 支持在 `SKILL.md` 中使用 YAML frontmatter 进行配置：
 |-------|------|-------------|
 | `name` | string | skill 显示名称 |
 | `description` | string | 这个 skill 的作用 |
-| `autoInvoke` | array | 自动触发的关键词 |
-| `effort` | string | 推理强度等级（`low`、`medium`、`high`） |
-| `shell` | string | 脚本使用的 shell（`bash`、`zsh`、`sh`） |
+| `when_to_use` | string | 追加到 `description` 的触发短语或示例请求 |
+| `effort` | string | 努力等级（`low`、`medium`、`high`、`xhigh`、`max`；取决于模型） |
+| `shell` | string | 内联 `` !`command` `` 块使用的 shell（默认 `bash`，或 `powershell`） |
 
 **参考**: [03-skills/README.md](03-skills/README.md) | [官方文档](https://code.claude.com/docs/en/skills)
 
@@ -298,7 +296,7 @@ claude plugin update <name>   # 更新 plugin（CLI；/plugin update 斜杠命�
 | **Asana** | 项目管理 | 任务跟踪 | 项目 | 在设置中配置 |
 | **Stripe** | 支付数据 | 财务分析 | 项目 | 在设置中配置 |
 | **Memory** | 持久记忆 | 跨会话回忆 | 用户 | 在设置中配置 |
-| **Context7** | 库文档 | 查找最新文档 | 内置 | 内置 |
+| **Context7** | 库文档 | 查找最新文档 | 用户 | 在设置中配置（第三方 server） |
 
 > **作用域**: `Project` = 团队（`.mcp.json`），`User` = 个人（`~/.claude.json`），`Built-in` = 预装
 
@@ -336,10 +334,10 @@ export GITHUB_TOKEN="your_token" && claude mcp add github -- npx -y @modelcontex
 | 事件 | 说明 | 触发时机 | 使用场景 |
 |-------|-------------|----------------|-----------|
 | `SessionStart` | 会话开始/恢复 | 会话初始化 | 初始化任务 |
-| `Setup` | 初始环境搭建（每个会话一次） | 会话首次启动 | 准备工具链、安装依赖 |
+| `Setup` | 仓库初始化或维护运行 | 仅在 `--init-only`，或 `--init`/`--maintenance` 搭配 `-p` 时 | 准备工具链、安装依赖 |
 | `InstructionsLoaded` | 指令已加载 | `CLAUDE.md` 或规则文件加载 | 自定义指令处理 |
 | `UserPromptSubmit` | 提示词提交前 | 用户发送消息 | 输入校验 |
-| `UserPromptExpansion` | 提示词被展开（@提及、斜杠命令解析） | 展开后、提交前 | 转换或检查展开后的提示词 |
+| `UserPromptExpansion` | 输入的斜杠命令（skill、自定义命令或 MCP prompt）展开为提示词 | `UserPromptSubmit` 之后、展开后的提示词到达 Claude 之前 | 阻止直接使用 `/command`、添加按 skill 的上下文、记录命令 |
 | `PreToolUse` | 工具执行前 | 任意工具运行之前 | 校验、日志 |
 | `PermissionRequest` | 显示权限对话框 | 敏感操作前 | 自定义审批流程 |
 | `PermissionDenied` | 用户拒绝权限请求 | 权限被拒绝后 | 日志、分析、策略执行 |
@@ -446,7 +444,7 @@ cp 02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | 功能 | 说明 | 使用方式 |
 |---------|-------------|------------|
 | **Remote Control** | 通过 API 远程控制 Claude Code 会话 | 使用远程控制 API 以编程方式发送提示并接收响应 |
-| **Web Sessions** | 在浏览器环境中运行 Claude Code | 通过 `claude web` 或 Anthropic Console 访问 |
+| **Web Sessions** | 在云端会话中运行 Claude Code | 使用 `claude --cloud "task"` 或在 claude.ai/code 启动 |
 | **Desktop App** | Claude Code 的原生桌面应用 | 使用 `/desktop` 或从 Anthropic 网站下载 |
 | **Agent Teams** | 协调多个 agent 共同处理相关任务 | 配置协作并共享上下文的 teammate agents |
 | **Task List** | 后台任务管理与监控 | 使用 `/tasks` 查看和管理后台操作 |
@@ -456,7 +454,7 @@ cp 02-memory/personal-CLAUDE.md ~/.claude/CLAUDE.md
 | **MCP OAuth** | 为 MCP servers 提供 OAuth 认证 | 在 MCP server 设置中配置 OAuth 凭据以安全访问 |
 | **MCP Tool Search** | 动态搜索和发现 MCP 工具 | 使用工具搜索查找已连接 server 上可用的 MCP 工具 |
 | **Scheduled Tasks** | 使用 `/loop` 和 cron 工具设置周期任务 | 使用 `/loop 5m /command` 或 CronCreate 工具 |
-| **Chrome Integration** | 使用无头 Chromium 做浏览器自动化 | 使用 `--chrome` 标志或 `/chrome` 命令 |
+| **Chrome Integration** | 通过 Claude in Chrome 扩展操控你自己的 Chrome/Edge（可见窗口、沿用你的登录状态） | 使用 `--chrome` 标志或 `/chrome` 命令 |
 | **Keyboard Customization** | 自定义按键映射并支持 chord | 使用 `/keybindings` 或编辑 `~/.claude/keybindings.json` |
 | **自动模式（Auto Mode）** | 附带后台安全分类器检查的完全自主运行 | `Shift+Tab` 切换，或使用 `--permission-mode auto` |
 | **通道（Channels）** | 多通道通信（Telegram、Slack 等）（Research Preview） | 配置 channel plugins；2026 年 3 月 |
@@ -531,8 +529,8 @@ claude mcp add github -- npx -y @modelcontextprotocol/server-github
 
 ---
 
-**最后更新**: 2026 年 10 月 10 日
-**Claude Code 版本**: 2.1.296
+**最后更新**: 2026 年 10 月 15 日
+**Claude Code 版本**: 2.1.300
 **来源**:
 - https://code.claude.com/docs/en/tools-reference#task-tool-availability
 - https://code.claude.com/docs/en/commands
@@ -540,3 +538,8 @@ claude mcp add github -- npx -y @modelcontextprotocol/server-github
 - https://code.claude.com/docs/en/plugins-reference
 - https://code.claude.com/docs/en/discover-plugins
 - https://code.claude.com/docs/en/sub-agents
+- https://code.claude.com/docs/en/permission-modes
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/skills
+- https://code.claude.com/docs/en/mcp
+- https://code.claude.com/docs/en/chrome

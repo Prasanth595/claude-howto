@@ -278,35 +278,47 @@ Plugins have access to a persistent state directory via the `${CLAUDE_PLUGIN_DAT
   "hooks": {
     "PostToolUse": [
       {
-        "command": "node ${CLAUDE_PLUGIN_DATA}/track-usage.js"
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/track-usage.js \"${CLAUDE_PLUGIN_DATA}\"/usage.json"
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-The directory is created automatically when the plugin is installed. Files stored here persist until the plugin is uninstalled.
+The directory (`~/.claude/plugins/data/<id>/`) is created the first time it is referenced and kept across plugin updates. It is deleted when you uninstall the plugin from the last place it's installed (unless you pass `--keep-data`).
 
 ### Background Monitors (v2.1.105)
 
-Plugins can register background monitors that auto-arm when a session starts or when the plugin's skill is invoked. Add a top-level `monitors` key to your plugin manifest:
+Plugins can register background monitors that start when a session starts or the first time one of the plugin's skills runs. Declare them under `experimental.monitors` in `plugin.json` (or in `monitors/monitors.json`):
 
 ```json
 {
   "name": "my-plugin",
   "version": "1.0.0",
-  "monitors": [
-    {
-      "command": "tail -f /var/log/app.log",
-      "trigger": "session_start"
-    }
-  ]
+  "experimental": {
+    "monitors": [
+      {
+        "name": "app-log",
+        "command": "tail -f /var/log/app.log",
+        "description": "Application log errors",
+        "when": "always"
+      }
+    ]
+  }
 }
 ```
 
-The `trigger` field accepts:
-- `"session_start"` — arm the monitor automatically when a session begins
-- `"skill_invoke"` — arm the monitor when the plugin's skill is invoked
+`name`, `command`, and `description` are required. `when` accepts:
+- `"always"` (default) — start at session start and on plugin reload
+- `"on-skill-invoke:<skill>"` — start the first time that skill runs
+
+Unknown keys are rejected and the plugin doesn't load. A top-level `monitors` key still loads but `claude plugin validate` warns.
 
 Monitors use the same Monitor tool under the hood, streaming stdout lines as events Claude can react to.
 
@@ -344,6 +356,8 @@ A mod is a plugin that changes how Claude Code looks and behaves. Its code is a 
 | Call the mods API | Call a model, read and write files, start processes, or make network requests (a hook can do these only through the mods API) |
 
 To create a mod, describe what you want in a Claude Code session: Claude works from the built-in `plugin-authoring` skill (or run `/plugin-authoring` yourself), writes the mod, and, once you enable hot reloading for the session, reloads it at the end of each turn that changes it; `claude plugin validate` checks a mod without running it. Administrators decide whether mods run, and which ones, through managed settings — for example, `allowManagedModsOnly` lets only your organization's mods and the mods built into Claude Code run their hooks.
+
+> **Note**: v2.1.299–2.1.300 add `Text` props `size`, `weight`, `mono`, `tabular`, `dir` (RTL) — `bold` is deprecated in favor of `weight` — `Box` spacing steps `xs`–`xl`, prompt `virtualText`, `$.ui.view({ agentId })`, and the `prompt.change` hook.
 
 > **Note**: See the official [Mods overview](https://code.claude.com/docs/en/plugins/mods/overview), [Create a mod](https://code.claude.com/docs/en/plugins/mods/create), and [Mods reference](https://code.claude.com/docs/en/plugins/mods/reference).
 
@@ -459,13 +473,10 @@ devops-automation/
 │   ├── incident-commander.md
 │   └── alert-analyzer.md
 ├── mcp/
-│   ├── github-config.json
-│   ├── kubernetes-config.json
-│   └── prometheus-config.json
+│   └── kubernetes-config.json
 ├── hooks/
 │   ├── pre-deploy.js
-│   ├── post-deploy.js
-│   └── on-error.js
+│   └── post-deploy.js
 └── scripts/
     ├── deploy.sh
     ├── rollback.sh
@@ -488,8 +499,7 @@ documentation/
 │   ├── code-commentator.md
 │   └── example-generator.md
 ├── mcp/
-│   ├── github-docs-config.json
-│   └── slack-announce-config.json
+│   └── github-docs-config.json
 └── templates/
     ├── api-endpoint.md
     ├── function-docs.md
@@ -871,6 +881,8 @@ LSP servers were added to the details pane in v2.1.142. See also the marketplace
 claude plugin eval            # Run the plugin's eval suite
 claude plugin eval --help     # Full option list
 ```
+
+`--disallow-tools <tools…>` and a per-case `disallowed_tools` field keep built-in tools such as Agent out of eval runs (v2.1.299).
 
 ### Machine-readable output with `--json` (v2.1.268+)
 
@@ -1327,8 +1339,8 @@ The following Claude Code features work together with plugins:
 
 ---
 
-**Last Updated**: October 10, 2026
-**Claude Code Version**: 2.1.296
+**Last Updated**: October 15, 2026
+**Claude Code Version**: 2.1.300
 **Sources**:
 - https://code.claude.com/docs/en/plugins
 - https://code.claude.com/docs/en/plugins-reference
@@ -1359,4 +1371,7 @@ The following Claude Code features work together with plugins:
 - https://code.claude.com/docs/en/plugins/mods/reference
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.287
 - https://github.com/anthropics/claude-code/releases/tag/v2.1.292
+- https://code.claude.com/docs/en/plugins-reference#monitors
+- https://code.claude.com/docs/en/changelog#2-1-299
+- https://code.claude.com/docs/en/changelog#2-1-300
 **Compatible Models**: Claude Fable 5, Claude Opus 5, Claude Sonnet 5, Claude Sonnet 4.6, Claude Opus 4.8, Claude Haiku 4.5

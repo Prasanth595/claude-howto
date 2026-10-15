@@ -119,14 +119,14 @@ của tác nhân con để giải quyết vấn đề.
 |-------|----------|-------------|
 | `name` | Có | Định danh duy nhất (chữ thường và dấu gạch ngang) |
 | `description` | Có | Mô tả ngôn ngữ của mục đích. Bao gồm "use PROACTIVELY" để khuyến khích gọi tự động |
-| `tools` | Không | Danh sách phân tách bằng dấu phẩy của các công cụ cụ thể. Bỏ qua để kế thừa tất cả công cụ. Hỗ trợ cú pháp `Agent(agent_name)` để hạn chế tác nhân con có thể tạo |
+| `tools` | Không | Danh sách phân tách bằng dấu phẩy của các công cụ cụ thể. Bỏ qua để kế thừa tất cả công cụ. Hỗ trợ cú pháp `Agent(agent_name)` để hạn chế tác nhân con có thể tạo. MCP: `mcp__<server>__*` cấp quyền cho toàn bộ một server (v2.1.299+: chỉ khớp đúng tên server đó). |
 | `disallowedTools` | Không | Danh sách phân tách bằng dấu phẩy của các công cụ mà tác nhân con không được sử dụng |
 | `model` | Không | Mô hình để sử dụng: `sonnet`, `opus`, `haiku`, ID mô hình đầy đủ, hoặc `inherit`. Mặc định là mô hình tác nhân con được cấu hình |
-| `permissionMode` | Không | `manual` (đổi tên từ `default` ở v2.1.200 — tên cũ `default` vẫn được chấp nhận), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto` |
+| `permissionMode` | Không | `default` (chế độ Manual; `manual` được chấp nhận như bí danh từ v2.1.200), `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan`, `auto`. Khi tác nhân cha chạy ở `bypassPermissions`, `acceptEdits` hoặc `auto`, `permissionMode` của tác nhân con bị bỏ qua |
 | `maxTurns` | Không | Số lượng lượt tác nhân tối đa mà tác nhân con có thể thực hiện |
 | `skills` | Không | Danh sách phân tách bằng dấu phẩy của các skills để tải trước. Tiêm toàn bộ nội dung skill vào bối cảnh của tác nhân con khi khởi động |
 | `mcpServers` | Không | MCP servers để cung cấp cho tác nhân con |
-| `hooks` | Không | Hooks theo phạm vi component (PreToolUse, PostToolUse, Stop) |
+| `hooks` | Không | Hooks chỉ chạy khi tác nhân con này đang hoạt động. Hỗ trợ mọi sự kiện hook; phổ biến nhất là `PreToolUse`, `PostToolUse`, `Stop` (chạy dưới dạng `SubagentStop`) |
 | `memory` | Không | Phạm vi thư mục bộ nhớ liên tục: `user`, `project`, hoặc `local` |
 | `background` | Không | Đặt thành `true` để luôn chạy tác nhân con này như một tác vụ nền |
 | `effort` | Không | Mức độ nỗ lực lý luận: `low`, `medium`, `high`, hoặc `max` |
@@ -368,11 +368,7 @@ claude --agent code-reviewer
 
 ### Liệt Kê Các Tác Nhân Có Sẵn
 
-Sử dụng lệnh `claude agents` để liệt kê tất cả các tác nhân được cấu hình từ tất cả các nguồn:
-
-```bash
-claude agents
-```
+Để xem các tác nhân con đã được cấu hình, hãy hỏi Claude hoặc duyệt `.claude/agents/` và `~/.claude/agents/`. (`claude agents` không liên quan: lệnh này mở agent view cho các phiên chạy nền.)
 
 ---
 
@@ -551,16 +547,14 @@ Trong ví dụ này, tác nhân con `coordinator` chỉ có thể tạo các tá
 
 ## Lệnh CLI `claude agents`
 
-Lệnh `claude agents` liệt kê tất cả các tác nhân được cấu hình được nhóm theo nguồn (tích hợp, cấp người dùng, cấp dự án):
+`claude agents` mở **agent view** (v2.1.139+): danh sách toàn màn hình các phiên chạy nền của bạn, nhóm theo trạng thái. Lệnh này không liệt kê các định nghĩa tác nhân con đã cấu hình; dùng `claude agents --json` để viết script dựa trên trạng thái phiên.
 
 ```bash
 claude agents
+claude agents --json
 ```
 
-Lệnh này:
-- Hiển thị tất cả các tác nhân có sẵn từ tất cả các nguồn
-- Nhóm các tác nhân theo vị trí nguồn của chúng
-- Chỉ định **ghi đè** khi một tác nhân ở mức ưu tiên cao hơn che một tác nhân ở mức thấp hơn (ví dụ: tác nhân cấp dự án với cùng tên như tác nhân cấp người dùng)
+Các tác nhân con đã cấu hình nằm trong `.claude/agents/` (dự án) và `~/.claude/agents/` (người dùng).
 
 ---
 
@@ -1133,10 +1127,15 @@ graph TD
 
 ---
 
-**Cập Nhật Lần Cuối**: Ngày 26 tháng 9 năm 2026
-**Phiên Bản Claude Code**: 2.1.283
+**Cập Nhật Lần Cuối**: Ngày 15 tháng 10 năm 2026
+**Phiên Bản Claude Code**: 2.1.300
 **Nguồn**:
 - https://code.claude.com/docs/en/sub-agents
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/interactive-mode
+- https://code.claude.com/docs/en/hooks
+- https://code.claude.com/docs/en/cli-reference
+- https://code.claude.com/docs/en/agent-view
+- https://code.claude.com/docs/en/sub-agents#permission-modes
+- https://code.claude.com/docs/en/sub-agents#available-tools
 **Các Mô Hình Tương Thích**: Claude Sonnet 4.6, Claude Opus 4.6, Claude Haiku 4.5
