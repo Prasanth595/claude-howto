@@ -530,9 +530,11 @@ source = "default"
 readonly = true
 ```
 
-Потім передайте DBHub цей файл замість `--dsn`:
+Потім передайте DBHub цей файл замість `--dsn`. Спершу видаліть сервер `database` із правом запису, який ви додали вище, бо Claude Code не додасть другий сервер із тим самим іменем:
 
 ```bash
+# Замінюємо сервер із правом запису, доданий вище
+claude mcp remove database
 export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
 claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --config "$PWD/dbhub.toml"

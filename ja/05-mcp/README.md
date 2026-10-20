@@ -527,9 +527,11 @@ source = "default"
 readonly = true
 ```
 
-`--dsn` の代わりに、このファイルを DBHub に指定します：
+`--dsn` の代わりに、このファイルを DBHub に指定します。Claude Code は同じ名前のサーバーを重複して追加できないため、先に上で追加した書き込み可能な `database` サーバーを削除してください：
 
 ```bash
+# 上で追加した書き込み可能なサーバーを置き換える
+claude mcp remove database
 export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
 claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --config "$PWD/dbhub.toml"

@@ -617,9 +617,11 @@ source = "default"
 readonly = true
 ```
 
-Then point DBHub at the file instead of passing `--dsn`:
+Then point DBHub at the file instead of passing `--dsn`. Remove the write-access `database` server you added above first, because Claude Code won't add a second server with the same name:
 
 ```bash
+# Replace the write-access server added above
+claude mcp remove database
 export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
 claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --config "$PWD/dbhub.toml"

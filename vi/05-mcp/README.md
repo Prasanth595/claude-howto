@@ -517,9 +517,11 @@ source = "default"
 readonly = true
 ```
 
-Sau đó trỏ DBHub tới file này thay vì truyền `--dsn`:
+Sau đó trỏ DBHub tới file này thay vì truyền `--dsn`. Trước tiên hãy xóa server `database` có quyền ghi đã thêm ở trên, vì Claude Code không cho thêm hai server trùng tên:
 
 ```bash
+# Thay thế server có quyền ghi đã thêm ở trên
+claude mcp remove database
 export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
 claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --config "$PWD/dbhub.toml"
