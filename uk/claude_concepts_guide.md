@@ -1080,43 +1080,7 @@ Reviewers: @bob, @charlie
 - `create_commit` - Create new commit
 ~~~~
 
-#### Приклад 2: Налаштування Database MCP
-
-**Конфігурація:**
-
-```json
-{
-  "mcpServers": {
-    "database": {
-      "command": "npx",
-      "args": ["-y", "@bytebase/dbhub", "--dsn", "${DATABASE_URL}"]
-    }
-  }
-}
-```
-
-**Приклад використання:**
-
-```markdown
-User: Fetch all users with more than 10 orders
-
-Claude: I'll query your database to find that information.
-
-# Using MCP database tool:
-SELECT u.*, COUNT(o.id) as order_count
-FROM users u
-LEFT JOIN orders o ON u.id = o.user_id
-GROUP BY u.id
-HAVING COUNT(o.id) > 10
-ORDER BY order_count DESC;
-
-# Results:
-- Alice: 15 orders
-- Bob: 12 orders
-- Charlie: 11 orders
-```
-
-#### Приклад 3: Робочий процес з кількома MCP
+#### Приклад 2: Робочий процес з кількома MCP
 
 **Сценарій: Генерація щоденного звіту**
 
@@ -1163,7 +1127,7 @@ Final Output:
 💰 $12,450 in daily sales
 ```
 
-#### Приклад 4: Операції Filesystem MCP
+#### Приклад 3: Операції Filesystem MCP
 
 **Конфігурація:**
 

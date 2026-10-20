@@ -504,6 +504,42 @@ claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --dsn "$DATABASE_URL"
 ```
 
+> **Warning**: Таке налаштування дає Claude право запису. Інструмент DBHub `execute_sql` виконує будь-який SQL, зокрема `UPDATE`, `DELETE` і `DROP`, якщо не ввімкнути режим лише для читання. Використовуйте локальну або тестову базу даних, а не продакшн.
+
+**Налаштування лише для читання (рекомендовано):**
+
+Створіть користувача бази даних, який може виконувати лише `SELECT` (приклад для PostgreSQL):
+
+```sql
+CREATE ROLE claude_readonly LOGIN PASSWORD 'change-me';
+GRANT CONNECT ON DATABASE mydb TO claude_readonly;
+GRANT USAGE ON SCHEMA public TO claude_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO claude_readonly;
+```
+
+Увімкніть режим лише для читання у файлі `dbhub.toml`. Старий прапорець `--readonly` більше не працює. DBHub підставляє `${DATABASE_URL}` зі змінних середовища, тож облікові дані у файл не потрапляють:
+
+```toml
+[[sources]]
+id = "default"
+dsn = "${DATABASE_URL}"
+
+[[tools]]
+name = "execute_sql"
+source = "default"
+readonly = true
+```
+
+Потім передайте DBHub цей файл замість `--dsn`:
+
+```bash
+export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
+claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
+  --config "$PWD/dbhub.toml"
+```
+
+Режим лише для читання перевіряє текст SQL, і його вже вдавалося обійти (виправлено в DBHub 0.22.6), тому справжній захист даних дає саме користувач із правом лише `SELECT`. Докладніше: [режим лише для читання в DBHub](https://dbhub.ai/tools/execute-sql#read-only-mode).
+
 ### Приклад 3: Мульти-MCP воркфлов
 
 **Сценарій: генерація щоденного звіту**

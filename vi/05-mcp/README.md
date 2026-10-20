@@ -491,6 +491,42 @@ claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --dsn "$DATABASE_URL"
 ```
 
+> **Warning**: Thiết lập này cho Claude quyền ghi. Công cụ `execute_sql` của DBHub chạy mọi câu SQL, kể cả `UPDATE`, `DELETE` và `DROP`, trừ khi bạn bật chế độ chỉ đọc. Hãy dùng database cục bộ hoặc database thử nghiệm, không dùng production.
+
+**Thiết lập chỉ đọc (khuyến nghị):**
+
+Tạo một user database chỉ được chạy `SELECT` (ví dụ PostgreSQL):
+
+```sql
+CREATE ROLE claude_readonly LOGIN PASSWORD 'change-me';
+GRANT CONNECT ON DATABASE mydb TO claude_readonly;
+GRANT USAGE ON SCHEMA public TO claude_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO claude_readonly;
+```
+
+Bật chế độ chỉ đọc trong file `dbhub.toml`. Cờ `--readonly` cũ không còn hoạt động. DBHub lấy `${DATABASE_URL}` từ biến môi trường, nên không cần ghi thông tin đăng nhập vào file:
+
+```toml
+[[sources]]
+id = "default"
+dsn = "${DATABASE_URL}"
+
+[[tools]]
+name = "execute_sql"
+source = "default"
+readonly = true
+```
+
+Sau đó trỏ DBHub tới file này thay vì truyền `--dsn`:
+
+```bash
+export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
+claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
+  --config "$PWD/dbhub.toml"
+```
+
+Chế độ chỉ đọc lọc theo nội dung câu SQL và từng bị vượt qua (đã sửa trong DBHub 0.22.6), nên user chỉ có quyền `SELECT` mới là lớp bảo vệ dữ liệu thực sự. Xem [chế độ chỉ đọc của DBHub](https://dbhub.ai/tools/execute-sql#read-only-mode).
+
 ### Ví Dụ 3: Workflow Multi-MCP / Example 3: Multi-MCP Workflow
 
 **Kịch Bản: Tạo Báo Cáo Hàng Ngày**

@@ -591,6 +591,42 @@ claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
   --dsn "$DATABASE_URL"
 ```
 
+> **Warning**: This setup gives Claude write access. DBHub's `execute_sql` tool runs any SQL it receives, including `UPDATE`, `DELETE`, and `DROP`, unless you turn on read-only mode. Use a local or throwaway database, never production.
+
+**Read-only setup (recommended):**
+
+Create a database user that can only run `SELECT` (PostgreSQL example):
+
+```sql
+CREATE ROLE claude_readonly LOGIN PASSWORD 'change-me';
+GRANT CONNECT ON DATABASE mydb TO claude_readonly;
+GRANT USAGE ON SCHEMA public TO claude_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO claude_readonly;
+```
+
+Turn on read-only mode in a `dbhub.toml`. The old `--readonly` flag no longer works. DBHub fills in `${DATABASE_URL}` from your environment, so no credentials go in the file:
+
+```toml
+[[sources]]
+id = "default"
+dsn = "${DATABASE_URL}"
+
+[[tools]]
+name = "execute_sql"
+source = "default"
+readonly = true
+```
+
+Then point DBHub at the file instead of passing `--dsn`:
+
+```bash
+export DATABASE_URL="postgresql://claude_readonly:change-me@localhost/mydb"
+claude mcp add --transport stdio database -- npx -y @bytebase/dbhub \
+  --config "$PWD/dbhub.toml"
+```
+
+Read-only mode filters SQL text and has had bypasses in the past (fixed in DBHub 0.22.6), so the `SELECT`-only user is what really protects your data. See [DBHub read-only mode](https://dbhub.ai/tools/execute-sql#read-only-mode).
+
 ### Example 3: Multi-MCP Workflow
 
 **Scenario: Daily Report Generation**

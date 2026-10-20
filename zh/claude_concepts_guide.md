@@ -742,20 +742,7 @@ sequenceDiagram
 }
 ```
 
-#### 示例 2：Database MCP 配置
-
-```json
-{
-  "mcpServers": {
-    "database": {
-      "command": "npx",
-      "args": ["-y", "@bytebase/dbhub", "--dsn", "${DATABASE_URL}"]
-    }
-  }
-}
-```
-
-#### 示例 3：多 MCP 工作流
+#### 示例 2：多 MCP 工作流
 
 ```markdown
 # 使用多个 MCP 的日报工作流
@@ -767,7 +754,7 @@ sequenceDiagram
 4. Filesystem MCP - 保存报告
 ```
 
-#### 示例 4：Filesystem MCP 操作
+#### 示例 3：Filesystem MCP 操作
 
 | 操作 | 命令 | 作用 |
 |------|------|------|
